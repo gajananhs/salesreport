@@ -5,7 +5,7 @@ An installable Progressive Web App for the **Sales Reporter** system.
 **Live app:** https://gajananhs.github.io/salesreport/
 
 - **Full original app.** The original Sales Reporter screens and logic (`assets/js/app.js`) run unchanged. That includes visits, daily work reports, expenses, advance requests and approvals, payments, tasks, IndiaMART leads, lead routing, plans, reports, sales data, the admin panel, TallyField, Tally ledger import/export, Logbook SSO, and password reset.
-- **Live data.** Login, data, approvals, e-mails, IndiaMART sync and Tally sync all stay on the existing server, `https://canaresonline.com/Salesreport/`. No data is copied into this repo. The repo is public, so it contains no personal data and no secrets.
+- **Live data.** Login, data, approvals, e-mails, IndiaMART sync and Tally sync all stay on the existing server, `https://canaresonline.com/Salesreport1/`. No data is copied into this repo. The repo is public, so it contains no personal data and no secrets.
 - **New look.** A blue Meridian theme (navy, amber, Fraunces and IBM Plex) is layered over the original stylesheet. Phones get a bottom tab bar, tablets an icon rail, desktops a full sidebar.
 - **PWA.** Installable on Android, iOS and desktop. The app shell is cached, so it opens instantly, shows an offline notice when there's no connection, and shows a "new version" banner after each deploy.
 
@@ -13,7 +13,7 @@ An installable Progressive Web App for the **Sales Reporter** system.
  Phone / PC  ──►  gajananhs.github.io/salesreport/   (this repo: app shell, GitHub Pages)
                          │  fetch + X-Session-Token
                          ▼
-                 canaresonline.com/Salesreport/api/   (existing PHP + MySQL, unchanged)
+                 canaresonline.com/Salesreport1/api/   (existing PHP + MySQL, unchanged)
 ```
 
 ---
@@ -23,7 +23,7 @@ An installable Progressive Web App for the **Sales Reporter** system.
 The browser only lets the GitHub-hosted app read the API's replies if the API allows that origin. This takes **one new file** on the server. It adds response headers only; no PHP, data or logic changes.
 
 1. In this repo, download `server/api-cors.htaccess`.
-2. In hPanel → **File Manager**, open `public_html/Salesreport/api/`.
+2. In hPanel → **File Manager**, open `public_html/Salesreport1/api/`.
    - **If there's no `.htaccess` in that folder:** upload the file and rename it to **`.htaccess`**.
    - **If a `.htaccess` already exists:** open it and paste the contents of `api-cors.htaccess` at the end. Don't replace what's already there.
 3. Open https://gajananhs.github.io/salesreport/ and log in with your usual Sales Reporter account.
@@ -35,7 +35,7 @@ What the file does:
 
 Users still need their normal login token. CORS on its own grants no access.
 
-The existing site at `canaresonline.com/Salesreport/` keeps working exactly as before, and both can be used side by side.
+The existing site at `canaresonline.com/Salesreport1/` keeps working exactly as before, and both can be used side by side.
 
 ---
 

@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # Sales Reporter — allow the PWA on GitHub Pages to call this API (CORS)
-# Upload as:  public_html/Salesreport/api/.htaccess
+# Upload as:  public_html/Salesreport1/api/.htaccess
 # Only adds response headers for requests coming from the app's address.
 # No PHP file, data or logic is changed. Kept deliberately simple so it
 # works on both Apache and LiteSpeed (Hostinger).

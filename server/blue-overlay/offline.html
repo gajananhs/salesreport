@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Offline · Sales Reporter</title>
+<meta name="theme-color" content="#0F2D5C">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="stylesheet" href="assets/css/fonts.css">
+<style>
+  :root{--ink:#1A2433;--cream:#F6F8FC;--deep:#0F2D5C;--deep-2:#1B4688;--sage:#687D99;--amber:#D9A22C;--page:#E6EBF3;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;
+    font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--page);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .box{width:100%;max-width:380px;background:linear-gradient(135deg,var(--deep),var(--deep-2));color:var(--cream);
+    border-radius:20px;padding:28px 22px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(15,45,92,.28);}
+  .box::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(217,162,44,.25);}
+  img{width:48px;height:48px;border-radius:12px;margin-bottom:18px;}
+  .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--amber);margin-bottom:6px;}
+  h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:600;margin-bottom:8px;}
+  p{font-size:13px;color:rgba(246,248,252,.7);line-height:1.6;margin-bottom:20px;}
+  button{width:100%;background:var(--amber);color:var(--deep);border:none;padding:13px;border-radius:12px;font:600 14px 'IBM Plex Sans',sans-serif;cursor:pointer;position:relative;z-index:1;}
+  button:focus-visible{outline:2px solid var(--cream);outline-offset:2px;}
+</style>
+</head>
+<body>
+  <div class="box" role="alert">
+    <img src="assets/icons/icon-192.png" alt="">
+    <div class="label">NO CONNECTION</div>
+    <h1>You're offline</h1>
+    <p>This page hasn't been saved for offline use yet. Open Sales Reporter once while online and it will keep working without a connection after that.</p>
+    <button type="button" onclick="location.href='./'">Try again</button>
+  </div>
+  <script>window.addEventListener('online', function(){ location.href = './'; });</script>
+</body>
+</html>

@@ -6,7 +6,7 @@
 // It must end with a slash and must serve api/*.php with the CORS
 // rules in server/api-cors.htaccess (see README).
 window.SR_CONFIG = {
-  SERVER: 'https://canaresonline.com/Salesreport/',
+  SERVER: 'https://canaresonline.com/Salesreport1/',
 };
 
 // Testing only: a different backend can be set per browser with
