@@ -4,7 +4,7 @@ An offline-first Progressive Web App for field sales teams: log customer and dea
 
 The screens and features follow the Sales Reporter dashboard. The visual design (palette, typography, cards, hero, tab bar, spacing) follows the Meridian PWA. **All data is fictional sample data** that's generated on first launch and stored on the device.
 
-**Live app:** https://gajananhs.github.io/sales-reporter-pwa/
+**Live app:** https://canaresonline.com/salesreporter-app/ (Hostinger, deployed automatically from this private repo)
 
 ---
 
@@ -87,8 +87,8 @@ GitHub Pages serves project sites from `https://<user>.github.io/<repo>/`. The a
 Requirements: **Node.js 18 or newer** (nothing to `npm install`).
 
 ```bash
-git clone https://github.com/gajananhs/sales-reporter-pwa.git
-cd sales-reporter-pwa
+git clone https://github.com/gajananhs/salesreport.git
+cd salesreport
 
 npm run dev        # serves public/ at http://localhost:5173/sales-reporter-pwa/
 ```
@@ -127,7 +127,40 @@ npm run icons
 
 ---
 
-## Deploy to GitHub Pages
+## Deploy — which option?
+
+| Repo visibility | Hosting | Workflow | Cost |
+|---|---|---|---|
+| **Private** | Hostinger (your existing site) | `.github/workflows/deploy-hostinger.yml` | Free (uses your existing hosting) |
+| Public | GitHub Pages | `.github/workflows/deploy.yml` | Free |
+| Private | GitHub Pages | `deploy.yml` (remove its `if:` line) | GitHub Pro or Team plan |
+
+Both workflows run on every push to `main`. The GitHub Pages workflow skips itself automatically when the repo is private.
+
+> A private repo keeps the **source code** private. The deployed app is a public web address either way, which is normal for a PWA. GitHub Pages can only restrict *who can open the site* on GitHub Enterprise.
+
+## Deploy to Hostinger automatically (private repo)
+
+This option needs no GitHub upgrade. Every push builds the app and uploads only the changed files over FTPS.
+
+1. **Create an FTP account** in Hostinger hPanel: **Files → FTP Accounts**. Give it a folder such as `public_html/salesreporter-app`. Note the **FTP hostname**, **username** and **password**.
+2. **Add four secrets** in the GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**:
+
+   | Name | Example |
+   |---|---|
+   | `FTP_SERVER` | `ftp.canaresonline.com` |
+   | `FTP_USERNAME` | `u123456789.salesapp` |
+   | `FTP_PASSWORD` | the FTP password |
+   | `FTP_SERVER_DIR` | `./` if the FTP account is already locked to the app folder; otherwise `public_html/salesreporter-app/` (must end with `/`) |
+
+3. **Run it.** Open **Actions → Deploy to Hostinger (FTP) → Run workflow**, or simply push to `main`.
+4. **Open the site** at `https://canaresonline.com/salesreporter-app/`. HTTPS must be enabled on the domain; Hostinger's free SSL is enough.
+
+The included `public/.htaccess` forces HTTPS, sets the cache headers the service worker needs, and enables compression.
+
+Other free hosts that also auto-deploy from private repos (connect the repo once in their dashboard, then set build command `npm run build` and output folder `dist`): **Cloudflare Pages**, **Netlify**, **Vercel**.
+
+## Deploy to GitHub Pages (public repo)
 
 The repository already includes the workflow at `.github/workflows/deploy.yml`.
 

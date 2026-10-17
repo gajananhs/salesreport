@@ -1,0 +1,39 @@
+# Apache / Hostinger settings for the Sales Reporter PWA.
+# (GitHub Pages ignores this file.)
+
+# Correct types for PWA files
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType application/json .json
+  AddType font/woff2 .woff2
+  AddType text/javascript .js .mjs
+</IfModule>
+
+# Always check for a new service worker, shell and manifest; cache the rest
+<IfModule mod_headers.c>
+  <FilesMatch "^(service-worker\.js|index\.html|manifest\.json|offline\.html)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(woff2|png)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/json application/manifest+json image/svg+xml
+</IfModule>
+
+# Force HTTPS (service workers and install need a secure origin)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+DirectoryIndex index.html

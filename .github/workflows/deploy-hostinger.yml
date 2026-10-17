@@ -1,0 +1,66 @@
+name: Deploy to Hostinger (FTP)
+
+# Works with a PRIVATE repository on the free GitHub plan.
+# Every push to main builds the app and uploads dist/ to your Hostinger site.
+#
+# One-time setup — repo Settings → Secrets and variables → Actions → New repository secret:
+#   FTP_SERVER      e.g. ftp.canaresonline.com   (hPanel → Files → FTP Accounts → "FTP IP / hostname")
+#   FTP_USERNAME    e.g. u123456789.salesapp     (hPanel → FTP Accounts)
+#   FTP_PASSWORD    the FTP account password
+#   FTP_SERVER_DIR  folder to publish into, ending in "/", e.g. public_html/salesreporter-app/
+#
+# The app will then be live at https://canaresonline.com/salesreporter-app/
+# (all paths in the app are relative, so any folder name works).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hostinger-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check FTP secrets are set
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
+        run: |
+          missing=""
+          for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_SERVER_DIR; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing — add them under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          case "$FTP_SERVER_DIR" in */) ;; *) echo "::error::FTP_SERVER_DIR must end with /"; exit 1;; esac
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          local-dir: ./dist/
+          protocol: ftps
+          security: loose
+          # only changed files are uploaded after the first run; files removed
+          # from dist/ are also removed from the server
+          dangerous-clean-slate: false

@@ -14,7 +14,7 @@ const OUT = join(ROOT, 'dist');
 
 // Files that are deployed but deliberately NOT precached.
 const NOT_PRECACHED = new Set([
-  'service-worker.js', '404.html', 'robots.txt', '.nojekyll',
+  'service-worker.js', '404.html', 'robots.txt', '.nojekyll', '.htaccess',
   'assets/fonts/OFL-Fraunces.txt', 'assets/fonts/OFL-IBM-Plex.txt',
 ]);
 
