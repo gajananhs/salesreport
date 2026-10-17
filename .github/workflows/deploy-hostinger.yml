@@ -23,9 +23,12 @@ concurrency:
   group: hostinger-deploy
   cancel-in-progress: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check FTP secrets are set
         env:
@@ -44,11 +47,11 @@ jobs:
           fi
           case "$FTP_SERVER_DIR" in */) ;; *) echo "::error::FTP_SERVER_DIR must end with /"; exit 1;; esac
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Build
         run: npm run build
