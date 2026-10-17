@@ -1,8 +1,0 @@
-/* Blue Meridian theme for the Lead Routing report (overrides its inline styles). */
-:root{--primary:#1B4688;--primary-dark:#0F2D5C;--bg:#F6F8FC;--text:#1A2433;--muted:#687D99;--border:#E2E7EF;--ok:#2F7A4F;--okbg:#DFF1E6}
-body{font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
-header{background:linear-gradient(135deg,#0F2D5C 0%,#1B4688 100%)}
-header h1,.card h2{font-family:'Fraunces',Georgia,serif;font-weight:600}
-.card,.stat{border-radius:16px}
-.stat b{font-family:'Fraunces',Georgia,serif;font-weight:600}
-button,.btn{border-radius:10px}

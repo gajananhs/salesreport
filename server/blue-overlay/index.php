@@ -10,12 +10,286 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Sales Reporter">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
-  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="apple-touch-icon" href="https://gajananhs.github.io/salesreport/assets/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://gajananhs.github.io/salesreport/assets/icons/favicon-32.png">
   <title>Sales Reporter</title>
   <link rel="stylesheet" href="assets/css/style.css?v=<?php echo filemtime(__DIR__ . '/assets/css/style.css'); ?>">
-  <link rel="stylesheet" href="assets/css/theme.css?v=<?php echo filemtime(__DIR__ . '/assets/css/theme.css'); ?>">
+  <!-- Blue Meridian theme (embedded so no extra files are needed) -->
+  <style>
+/* Self-hosted fonts (SIL Open Font License — see assets/fonts/OFL-*.txt).
+   latin + latin-ext subsets; latin-ext carries the ₹ sign. */
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:600;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:600;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:700;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:700;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/fraunces-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-sans-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-mono-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url(https://gajananhs.github.io/salesreport/assets/fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+/* =====================================================================
+   Sales Reporter — blue Meridian theme
+   Layered over the original assets/css/style.css (left unchanged) so
+   every original screen, class and behaviour keeps working.
+   Palette: navy + amber + cool white. Type: Fraunces / IBM Plex.
+   Layout:  <600px   bottom tab bar (scrolls sideways if needed)
+            600-1023 icon rail on the left
+            >=1024   full sidebar
+   ===================================================================== */
+
+:root{
+  /* Meridian tokens (blue) */
+  --ink:#1A2433; --cream:#F6F8FC; --panel:#FFFFFF; --page:#E6EBF3;
+  --deep:#0F2D5C; --deep-2:#1B4688; --slate:#687D99; --slate-ink:#2E4A70; --slate-soft:#E2E9F4;
+  --amber:#D9A22C; --amber-ink:#8A6417; --amber-soft:#F6E7C4;
+  --line:#E2E7EF; --red:#B85450; --red-soft:#F4DEDD; --ok:#2F7A4F; --ok-soft:#DFF1E6;
+  --font-display:'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-text:'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --rail-w:84px; --sidebar-w:248px;
+
+  /* remap the original variables so every original rule turns blue */
+  --primary:var(--deep-2);
+  --primary-dark:var(--deep);
+  --bg:var(--panel);
+  --surface:var(--panel);
+  --text:var(--ink);
+  --muted:var(--slate);
+  --border:var(--line);
+  --success:var(--ok);
+  --error:var(--red);
+  --radius:14px;
+}
+
+html, body{font-family:var(--font-text); background:var(--panel); color:var(--ink);}
+body{font-size:14px; line-height:1.4;}
+h1, h2, h3, h4, h5, .section-title, .modal-header h3, .aef-header h2{font-family:var(--font-display); font-weight:600; letter-spacing:0;}
+input, select, textarea, button{font-family:var(--font-text);}
+
+/* ---------- auth ---------- */
+.auth-view{background:radial-gradient(1200px 600px at 10% -10%, #24569f 0%, transparent 60%), linear-gradient(135deg, var(--deep) 0%, var(--deep-2) 100%);}
+.auth-card{border-radius:22px; box-shadow:0 24px 60px rgba(15,45,92,.35); border:1px solid rgba(255,255,255,.4);}
+.logo-circle{background:linear-gradient(135deg, var(--deep), var(--deep-2)); color:var(--amber); font-family:var(--font-display); font-weight:600; border-radius:16px; position:relative; overflow:hidden;}
+.logo-circle::after{content:""; position:absolute; right:-14px; top:-14px; width:40px; height:40px; border-radius:50%; border:1px solid rgba(217,162,44,.45);}
+.auth-card h1{font-size:1.6rem;}
+
+/* ---------- forms ---------- */
+label{color:var(--ink); font-weight:500;}
+input, select, textarea{background:var(--cream); border-color:var(--line); border-radius:9px; color:var(--ink);}
+input:focus, select:focus, textarea:focus{outline:none; border-color:var(--deep-2); box-shadow:0 0 0 3px rgba(27,70,136,.15);}
+.chip{background:var(--cream); color:var(--ink); border-color:var(--line); font-weight:500; font-size:.82rem; padding:8px 13px;}
+.chip.active{background:var(--deep); border-color:var(--deep); color:var(--cream);}
+.btn-primary{background:var(--deep); border-radius:10px; font-weight:600; font-size:.95rem;}
+.btn-primary:hover{background:var(--deep-2);}
+.btn-primary:active{background:var(--deep-2);}
+.btn-danger{background:var(--red-soft); color:var(--red); border-radius:10px;}
+.btn-small{background:var(--cream); color:var(--deep); border-color:var(--line); border-radius:7px;}
+.btn-small:hover{border-color:var(--slate);}
+.btn-add-task{border-radius:10px !important;}
+.switch-link a{color:var(--deep-2);}
+.error-msg{color:var(--red);}
+.success-msg{color:var(--ok);}
+.rate-hint{color:var(--slate);}
+.switch:checked, input[type="checkbox"].switch:checked{accent-color:var(--deep);}
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+
+/* ---------- page header (Meridian style) ---------- */
+.app-header h2{font-size:1.45rem;}
+.greeting{color:var(--slate); font-size:.78rem; font-weight:500;}
+.role-badge{background:var(--amber-soft); color:var(--deep); font-family:var(--font-display);}
+
+/* Home header becomes the Meridian hero card */
+#view-home > .app-header{
+  background:linear-gradient(135deg, var(--deep) 0%, var(--deep-2) 100%);
+  color:var(--cream); border-radius:20px; padding:22px 20px; margin-bottom:16px; position:relative; overflow:hidden;
+}
+#view-home > .app-header::after{content:""; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; border:1px solid rgba(217,162,44,.3); pointer-events:none;}
+#view-home > .app-header .greeting{color:var(--amber); font-family:var(--font-mono); font-size:.68rem; letter-spacing:.5px; text-transform:uppercase;}
+#view-home > .app-header h2{color:var(--cream); font-size:1.7rem; margin-top:2px;}
+#view-home > .app-header .role-badge{background:var(--amber); color:var(--deep); position:relative; z-index:1;}
+
+.section-title{font-size:1rem; margin:22px 2px 10px;}
+.section-title a{color:var(--slate) !important; font-family:var(--font-text);}
+
+/* ---------- cards & stats ---------- */
+.card, .stat-card, .record-card, .detail-body, .gps-card, .profile-card, .plan-card, .action-btn, .hist-item, .li-card{border-color:var(--line); border-radius:16px;}
+.card h4{font-family:var(--font-display); font-size:1rem; font-weight:600;}
+.stat-card{padding:13px 14px;}
+.stat-value{font-family:var(--font-display); font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums;}
+.stat-label{color:var(--slate); font-weight:500; font-size:.72rem;}
+.stat-grid .stat-card:nth-child(4){background:var(--amber-soft); border-color:transparent;}
+.stat-grid .stat-card:nth-child(4) .stat-label{color:var(--amber-ink);}
+.action-btn{color:var(--deep); font-weight:600; font-size:.82rem;}
+.action-btn:active, .action-btn:hover{background:var(--cream); border-color:var(--slate);}
+.action-icon{width:38px; height:38px; border-radius:11px; background:var(--amber-soft); display:inline-flex; align-items:center; justify-content:center; font-size:1.1rem;}
+.action-icon svg{width:19px; height:19px;}
+.total-bar{background:var(--cream); border-color:var(--line);}
+.total-bar strong{font-family:var(--font-mono); font-weight:500;}
+.record-card .rc-top{font-weight:500;}
+.avatar{background:var(--amber-soft); color:var(--deep); font-family:var(--font-display); font-weight:600;}
+
+/* gps */
+.gps-card{background:var(--slate-soft); border-color:transparent;}
+.gps-status{color:var(--slate-ink);}
+.gps-card.gps-ok{background:var(--ok-soft); border-color:transparent;}
+.gps-card.gps-ok .gps-status{color:var(--ok);}
+.gps-card.gps-err{background:var(--amber-soft); border-color:transparent;}
+.gps-card.gps-err .gps-status{color:var(--amber-ink);}
+
+/* badges */
+.badge{background:var(--slate-soft); color:var(--slate-ink); font-weight:600;}
+.badge.green, .badge.st-paid{background:var(--ok-soft); color:var(--ok);}
+.badge.gray{background:var(--cream); color:var(--slate); border:1px solid var(--line);}
+.badge.st-submitted, .badge.st-partially_paid{background:var(--amber-soft); color:var(--amber-ink);}
+.badge.st-approved{background:#DCE7F7; color:#24508F;}
+.badge.st-rejected{background:var(--red-soft); color:var(--red);}
+
+/* modals → Meridian sheets */
+.modal-overlay{background:rgba(15,45,92,.45);}
+.modal-card{border-radius:22px; box-shadow:0 24px 60px rgba(15,45,92,.35);}
+.modal-header{background:linear-gradient(135deg, var(--deep), var(--deep-2));}
+.modal-close{background:rgba(246,248,252,.12);}
+
+/* toast */
+.toast{background:var(--deep); color:var(--cream); border-radius:12px; font-weight:500; box-shadow:0 10px 30px rgba(15,45,92,.3);}
+
+/* ---------- navigation ---------- */
+.tab-bar{
+  background:rgba(255,255,255,.96); -webkit-backdrop-filter:saturate(1.4) blur(10px); backdrop-filter:saturate(1.4) blur(10px);
+  border-top:1px solid var(--line); overflow-x:auto; scrollbar-width:none; padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex:1 0 64px; color:var(--slate); font-size:.6rem; gap:4px; padding:5px 2px;}
+.tab-btn span{font-size:0; line-height:0;}
+.tab-btn span svg{width:20px; height:20px;}
+.tab-btn.active{color:var(--deep);}
+.side-brand{display:none;}
+/* phones: hint that more tabs scroll in from the right */
+@media (max-width:599px){
+  .tab-bar{scroll-snap-type:x proximity; -webkit-mask-image:linear-gradient(to right,#000 0,#000 86%,rgba(0,0,0,.35) 100%); mask-image:linear-gradient(to right,#000 0,#000 86%,rgba(0,0,0,.35) 100%);}
+  .tab-btn{scroll-snap-align:start;}
+  .tab-bar.at-end{-webkit-mask-image:none; mask-image:none;}
+}
+
+.tab-view{padding-top:calc(16px + env(safe-area-inset-top));}
+
+/* PWA banner (offline / update / install) */
+#pwa-banner{position:sticky; top:0; z-index:120;}
+#pwa-banner .pb{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; font-weight:500; padding:9px 14px; background:var(--amber-soft); color:var(--amber-ink);}
+#pwa-banner .pb.off{background:var(--red-soft); color:var(--red);}
+#pwa-banner button{background:var(--deep); color:var(--cream); border:none; border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap;}
+#pwa-banner .x{background:transparent; color:inherit;}
+
+/* ---------- tablet: icon rail ---------- */
+@media (min-width:600px){
+  body{background:var(--page);}
+  #app-shell{background:var(--panel); min-height:100vh; margin-left:var(--rail-w);}
+  .tab-bar{
+    top:0; bottom:0; left:0; right:auto; width:var(--rail-w); flex-direction:column; overflow-y:auto; overflow-x:hidden;
+    background:linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%); border:none; padding:16px 8px; gap:2px;
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+  }
+  .tab-btn{flex:0 0 auto; color:rgba(246,248,252,.68); border-radius:11px; padding:9px 2px; font-size:.6rem;}
+  .tab-btn:hover{background:rgba(246,248,252,.06); color:var(--cream);}
+  .tab-btn.active{background:rgba(217,162,44,.14); color:var(--amber);}
+  .side-brand{display:flex; justify-content:center; padding:2px 0 18px;}
+  .side-brand img{width:38px; height:38px; border-radius:10px;}
+  .side-brand div{display:none;}
+  .tab-view{max-width:820px; padding:24px 28px 40px;}
+  .toast{bottom:24px;}
+  #pwa-banner{margin-left:0;}
+}
+
+/* ---------- desktop: full sidebar ---------- */
+@media (min-width:1024px){
+  #app-shell{margin-left:var(--sidebar-w);}
+  .tab-bar{width:var(--sidebar-w); padding:22px 16px;}
+  .tab-btn{flex-direction:row; justify-content:flex-start; gap:12px; padding:10px 12px; font-size:.84rem; font-weight:500; text-align:left;}
+  .side-brand{justify-content:flex-start; gap:10px; align-items:center; padding:2px 6px 24px; text-decoration:none;}
+  .side-brand div{display:block;}
+  .side-brand b{display:block; font-family:var(--font-display); font-weight:600; font-size:17px; color:var(--cream); line-height:1.1;}
+  .side-brand small{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.5px; color:var(--amber);}
+  .tab-view{max-width:980px; padding:30px 40px 48px;}
+  .stat-grid{grid-template-columns:repeat(4, 1fr);}
+  .quick-actions{max-width:640px;}
+  .app-header h2{font-size:1.7rem;}
+}
+
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+@media print{ .tab-bar, #pwa-banner, .toast{display:none !important;} #app-shell{margin:0 !important;} }
+
+/* =====================================================================
+   v2 polish — depth, colour accents, phone-first spacing
+   ===================================================================== */
+body{background:var(--cream);}
+#app-shell{background:var(--cream);}
+.tab-view{padding-left:14px; padding-right:14px;}
+
+/* cards: soft depth instead of flat borders */
+.card, .stat-card, .record-card, .plan-card, .action-btn, .profile-card, .hist-item, .detail-body{
+  background:var(--panel); border:1px solid rgba(15,45,92,.06);
+  box-shadow:0 1px 2px rgba(15,45,92,.04), 0 6px 18px rgba(15,45,92,.06);
+}
+.record-card, .plan-card{transition:transform .15s ease, box-shadow .15s ease;}
+.record-card:active, .plan-card:active{transform:scale(.99);}
+
+/* stat tiles with coloured accent bars */
+.stat-grid{gap:10px;}
+.stat-card{position:relative; overflow:hidden; padding:14px 14px 12px 16px; min-height:84px; justify-content:flex-end;}
+.stat-card::before{content:""; position:absolute; left:0; top:12px; bottom:12px; width:4px; border-radius:0 4px 4px 0; background:var(--deep-2);}
+.stat-grid .stat-card:nth-child(2)::before{background:#3E7BD6;}
+.stat-grid .stat-card:nth-child(3)::before{background:#7A5CC7;}
+.stat-grid .stat-card:nth-child(4)::before{background:var(--amber);}
+.stat-grid .stat-card:nth-child(5)::before{background:var(--ok);}
+.stat-grid .stat-card:nth-child(6)::before{background:#2BA39B;}
+.stat-grid .stat-card:nth-child(7)::before{background:#D9772C;}
+.stat-grid .stat-card:nth-child(8)::before{background:var(--red);}
+.stat-grid .stat-card:nth-child(4){background:linear-gradient(135deg,#FBF1D9,#F6E7C4);}
+.stat-value{font-size:1.5rem; line-height:1.1;}
+
+/* home hero: richer, with role chip and breathing room */
+#view-home > .app-header{padding:24px 20px 26px; box-shadow:0 14px 30px rgba(15,45,92,.25); margin:2px 0 18px;}
+#view-home > .app-header::before{content:""; position:absolute; left:-40px; bottom:-60px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle, rgba(217,162,44,.18), transparent 70%); pointer-events:none;}
+
+/* section titles with a small amber tick */
+.section-title{position:relative; padding-left:12px;}
+.section-title::before{content:""; position:absolute; left:0; top:50%; width:4px; height:14px; margin-top:-7px; border-radius:2px; background:var(--amber);}
+
+/* quick actions: 3-up tiles */
+.quick-actions{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.action-btn{padding:16px 6px 14px; gap:8px; font-size:.78rem;}
+
+/* chips & inputs a touch larger for thumbs */
+.chip{padding:9px 14px; min-height:38px;}
+input, select, textarea{min-height:44px; font-size:16px;} /* 16px stops iOS zoom-on-focus */
+textarea{min-height:80px;}
+.btn-primary{min-height:48px; box-shadow:0 8px 18px rgba(15,45,92,.22);}
+
+/* phone tab bar: pill highlight on the active tab */
+@media (max-width:599px){
+  .tab-bar{padding-top:6px; box-shadow:0 -6px 20px rgba(15,45,92,.08);}
+  .tab-btn{border-radius:12px; margin:0 2px;}
+  .tab-btn.active{background:var(--slate-soft);}
+  .tab-view{padding-bottom:calc(92px + env(safe-area-inset-bottom));}
+  .app-header h2{font-size:1.35rem;}
+  .stat-value{font-size:1.35rem;}
+  .modal-overlay{padding:0; align-items:flex-end;}
+  .modal-card{max-width:100%; border-radius:22px 22px 0 0; max-height:92vh;}
+}
+@media (min-width:600px){ #app-shell{background:var(--cream);} .tab-view{padding-left:28px; padding-right:28px;} }
+@media (min-width:1024px){ .tab-view{padding-left:40px; padding-right:40px;} .quick-actions{max-width:none;} }
+
+  </style>
 </head>
 <body>
 
@@ -950,6 +1224,171 @@
   </div>
 
   <script src="assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/assets/js/app.js'); ?>"></script>
-  <script src="assets/js/pwa.js?v=<?php echo filemtime(__DIR__ . '/assets/js/pwa.js'); ?>"></script>
+  <!-- PWA shell: icons, banners, install, service worker (embedded) -->
+  <script>
+/* Sales Reporter — PWA shell.
+ * Runs after the original app.js. It only adds things around the app:
+ * line icons + sidebar brand, install / update / offline banners, and
+ * the service worker. It never changes app logic or data.
+ * APP_VERSION is stamped by scripts/build.mjs.
+ */
+(function () {
+  'use strict';
+  var APP_VERSION = '2.0.0';
+  window.SR_PWA_VERSION = APP_VERSION;
+
+  var svg = function (body) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
+  };
+  var ICONS = {
+    home: svg('<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/>'),
+    visit: svg('<path d="M12 21s-7-5.6-7-11.2A7 7 0 0 1 19 9.8C19 15.4 12 21 12 21z"/><circle cx="12" cy="10" r="2.6"/>'),
+    expense: svg('<path d="M12 2v20M17 5.5c0-1.6-2-2.5-5-2.5S7 4 7 5.8s2 2.4 5 2.9 5 1.3 5 3-2 2.8-5 2.8-5-.9-5-2.5"/>'),
+    tasks: svg('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 12.5l2.5 2.5L16 9.5"/>'),
+    plans: svg('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'),
+    reports: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+    salesdata: svg('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+    profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
+    logbook: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/>'),
+    receipt: svg('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'),
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- icons + brand (presentation only) ----------
+  function decorateNav() {
+    var bar = document.querySelector('.tab-bar');
+    if (!bar) return;
+    Array.prototype.forEach.call(bar.querySelectorAll('.tab-btn'), function (b) {
+      var key = b.dataset.view || (b.id === 'btn-open-logbook' ? 'logbook' : '');
+      var span = b.querySelector('span');
+      if (span && ICONS[key]) { span.innerHTML = ICONS[key]; span.setAttribute('aria-hidden', 'true'); }
+      if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', b.textContent.trim());
+    });
+    if (!bar.querySelector('.side-brand')) {
+      var brand = document.createElement('div');
+      brand.className = 'side-brand';
+      brand.innerHTML = '<img src="https://gajananhs.github.io/salesreport/assets/icons/icon-192.png" alt="" width="38" height="38"><div><b>Sales Reporter</b><small>FIELD · VISITS · SPEND</small></div>';
+      bar.insertBefore(brand, bar.firstChild);
+    }
+    var qa = { 'qa-visit': ICONS.visit, 'qa-expense': ICONS.receipt, 'qa-plan': ICONS.plans };
+    Object.keys(qa).forEach(function (id) {
+      var el = $(id) && $(id).querySelector('.action-icon');
+      if (el) el.innerHTML = qa[id];
+    });
+    var edge = function () { bar.classList.toggle('at-end', bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 2); };
+    bar.addEventListener('scroll', edge, { passive: true });
+    window.addEventListener('resize', edge);
+    edge();
+    // keep the active tab visible on phones and start each tab at the top
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.tab-btn');
+      if (!b || !b.dataset.view) return;
+      window.scrollTo(0, 0);
+      if (b.scrollIntoView && window.innerWidth < 600) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+    });
+  }
+
+  // ---------- banners ----------
+  var state = { offline: !navigator.onLine, update: false, install: false };
+  var deferredPrompt = null;
+  var waitingWorker = null;
+  var updateRequested = false;
+
+  function paintBanner() {
+    var host = $('pwa-banner');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'pwa-banner';
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
+      document.body.insertBefore(host, document.body.firstChild);
+      host.addEventListener('click', onBannerClick);
+    }
+    var html = '';
+    if (state.offline) html += '<div class="pb off"><span>You\'re offline — Sales Reporter needs a connection to load and save data. It will work again as soon as you reconnect.</span></div>';
+    if (state.update) html += '<div class="pb"><span>A new version of the app is ready.</span><button type="button" data-act="update">Reload</button></div>';
+    if (state.install && !state.update) html += '<div class="pb"><span>Install Sales Reporter on this device for one-tap access.</span><span><button type="button" data-act="install">Install</button> <button type="button" class="x" data-act="dismiss" aria-label="Dismiss">✕</button></span></div>';
+    host.innerHTML = html;
+  }
+
+  function onBannerClick(e) {
+    var act = e.target.closest && e.target.closest('[data-act]');
+    if (!act) return;
+    act = act.dataset.act;
+    if (act === 'update') {
+      if (!waitingWorker) { location.reload(); return; }
+      updateRequested = true;
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+    if (act === 'install' && deferredPrompt) {
+      var p = deferredPrompt; deferredPrompt = null;
+      p.prompt();
+      p.userChoice.finally(function () { state.install = false; paintBanner(); });
+    }
+    if (act === 'dismiss') {
+      state.install = false; paintBanner();
+      try { localStorage.setItem('sr_install_dismissed', '1'); } catch (_) { /* ignore */ }
+    }
+  }
+
+  window.addEventListener('online', function () { state.offline = false; paintBanner(); });
+  window.addEventListener('offline', function () { state.offline = true; paintBanner(); });
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var dismissed = false;
+    try { dismissed = localStorage.getItem('sr_install_dismissed') === '1'; } catch (_) { /* ignore */ }
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    state.install = !dismissed && !standalone;
+    paintBanner();
+  });
+  window.addEventListener('appinstalled', function () { deferredPrompt = null; state.install = false; paintBanner(); });
+
+  // ---------- service worker ----------
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    var go = function () {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' }).then(function (reg) {
+        var track = function (w) {
+          w.addEventListener('statechange', function () {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) { waitingWorker = w; state.update = true; paintBanner(); }
+          });
+        };
+        if (reg.waiting && navigator.serviceWorker.controller) { waitingWorker = reg.waiting; state.update = true; paintBanner(); }
+        reg.addEventListener('updatefound', function () { if (reg.installing) track(reg.installing); });
+        document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') reg.update().catch(function () {}); });
+      }).catch(function (err) { console.warn('Service worker registration failed:', err); });
+    };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+    var reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (reloading || !updateRequested) return;
+      reloading = true;
+      location.reload();
+    });
+  }
+
+  // Friendlier text when the server can't be reached (network down or the
+  // server's api/.htaccess CORS file missing). Presentation only.
+  function explainNetworkErrors() {
+    var msg = 'Can\u2019t reach the Sales Reporter server. Check your internet connection. ' +
+      'If this keeps happening, the server needs its one-time setup file (api/.htaccess) \u2014 see the README.';
+    ['login-error', 'register-error', 'forgot-error'].forEach(function (id) {
+      var el = $(id);
+      if (!el || !window.MutationObserver) return;
+      new MutationObserver(function () {
+        if (/failed to fetch|networkerror|load failed/i.test(el.textContent)) el.textContent = msg;
+      }).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+  }
+
+  decorateNav();
+  explainNetworkErrors();
+  paintBanner();
+  registerSW();
+})();
+
+  </script>
 </body>
 </html>

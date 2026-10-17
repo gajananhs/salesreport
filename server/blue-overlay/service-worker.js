@@ -2,9 +2,9 @@
  * Network-first for everything, so changes made on the server show up
  * immediately; cached copies are used only when offline. API calls
  * (api/), approve.php and reset.php are never cached. */
-const CACHE = 'sales-reporter-server-v1';
-const SHELL = ['./', './offline.html', './manifest.json', './assets/css/style.css', './assets/css/theme.css', './assets/css/fonts.css',
-  './assets/js/app.js', './assets/js/pwa.js', './assets/icons/icon-192.png', './assets/icons/favicon-32.png'];
+const CACHE = 'sales-reporter-server-v2';
+const SHELL = ['./', './offline.html', './manifest.json', './assets/css/style.css', 
+  './assets/js/app.js', './assets/css/style.css'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(new Request(u, { cache: 'reload' })).catch(() => {})))));
 });
