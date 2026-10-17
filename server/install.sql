@@ -1,15 +1,25 @@
 -- =====================================================================
 -- Sales Reporter — full database structure (install.sql)
 -- Import into an EMPTY or EXISTING Sales Reporter database via phpMyAdmin.
--- Safe: only creates tables that are missing (CREATE TABLE IF NOT EXISTS).
--- It never drops, empties or changes existing tables or data.
--- Generated from the app's own code (migrate.php + ensure_* functions).
--- After importing: open the app, "Create an account" for the first user
--- (choose role GM or CEO), log in, then run api/migrate.php?token=... once.
--- Do NOT import db/migrate_manual_totals.sql on a new database.
--- =====================================================================
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- Safe: only creates tables that are missing (-- users first: other tables reference it
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(190) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `logbook_name` varchar(150) DEFAULT NULL,
+  `employee_code` varchar(50) DEFAULT NULL,
+  `phone` varchar(30) DEFAULT NULL,
+  `role` varchar(10) NOT NULL DEFAULT 'me',
+  `territory` varchar(150) DEFAULT NULL,
+  `department` varchar(100) DEFAULT NULL,
+  `reporting_manager` varchar(150) DEFAULT NULL,
+  `is_active` tinyint(4) NOT NULL DEFAULT 1,
+  `tallyfield_rep_id` varchar(64) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `advance_approval_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -24,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `advance_approval_log` (
   PRIMARY KEY (`id`),
   KEY `idx_req` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `advance_request_approvals` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_id` int(11) NOT NULL,
@@ -37,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `advance_request_approvals` (
   UNIQUE KEY `uq_req_slot` (`request_id`,`approver_key`),
   KEY `idx_req` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `advance_request_attachments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_id` int(11) NOT NULL,
@@ -46,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `advance_request_attachments` (
   PRIMARY KEY (`id`),
   KEY `idx_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `advance_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_no` varchar(30) NOT NULL,
@@ -119,11 +132,13 @@ CREATE TABLE IF NOT EXISTS `advance_requests` (
   KEY `idx_status` (`status`),
   KEY `idx_adv_updated` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `app_settings` (
   `setting_key` varchar(100) NOT NULL,
   `setting_value` text DEFAULT NULL,
   PRIMARY KEY (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(150) NOT NULL,
@@ -158,6 +173,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
   KEY `idx_name` (`name`),
   KEY `idx_external` (`external_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `expense_attachments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `expense_id` int(11) NOT NULL,
@@ -166,6 +182,7 @@ CREATE TABLE IF NOT EXISTS `expense_attachments` (
   PRIMARY KEY (`id`),
   KEY `idx_expense_id` (`expense_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `expense_bills` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_id` int(11) NOT NULL,
@@ -176,6 +193,7 @@ CREATE TABLE IF NOT EXISTS `expense_bills` (
   PRIMARY KEY (`id`),
   KEY `idx_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `expenses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -213,6 +231,7 @@ CREATE TABLE IF NOT EXISTS `expenses` (
   KEY `idx_expense_updated` (`updated_at`),
   KEY `idx_expense_status` (`payment_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `lead_assignment_rules` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `priority` int(11) NOT NULL DEFAULT 100,
@@ -227,6 +246,7 @@ CREATE TABLE IF NOT EXISTS `lead_assignment_rules` (
   PRIMARY KEY (`id`),
   KEY `idx_priority` (`priority`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `lead_contact_activity` (
   `task_id` int(11) NOT NULL,
   `status` varchar(20) NOT NULL,
@@ -237,6 +257,7 @@ CREATE TABLE IF NOT EXISTS `lead_contact_activity` (
   PRIMARY KEY (`task_id`),
   KEY `idx_lead_contact_actor` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `password_resets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -249,6 +270,7 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
   KEY `fk_resets_user` (`user_id`),
   CONSTRAINT `fk_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `plans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -264,6 +286,7 @@ CREATE TABLE IF NOT EXISTS `plans` (
   KEY `idx_user_type_status` (`user_id`,`plan_type`,`status`),
   CONSTRAINT `fk_plans_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `rate_master` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `designation` varchar(50) NOT NULL,
@@ -275,6 +298,7 @@ CREATE TABLE IF NOT EXISTS `rate_master` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `designation` (`designation`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `sales_report_rows` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `report_id` int(11) NOT NULL,
@@ -297,6 +321,7 @@ CREATE TABLE IF NOT EXISTS `sales_report_rows` (
   PRIMARY KEY (`id`),
   KEY `idx_report` (`report_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `sales_reports` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -308,6 +333,7 @@ CREATE TABLE IF NOT EXISTS `sales_reports` (
   UNIQUE KEY `uq_user_date` (`user_id`,`report_date`),
   KEY `idx_date` (`report_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `sessions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -317,6 +343,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `tally_ledger_entries` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `entry_key` char(40) NOT NULL,
@@ -337,6 +364,7 @@ CREATE TABLE IF NOT EXISTS `tally_ledger_entries` (
   KEY `idx_tally_emp` (`employee_id`),
   KEY `idx_tally_updated` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `tasks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
@@ -369,24 +397,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   KEY `idx_assigned_to` (`assigned_to`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `email` varchar(190) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `name` varchar(150) NOT NULL,
-  `logbook_name` varchar(150) DEFAULT NULL,
-  `employee_code` varchar(50) DEFAULT NULL,
-  `phone` varchar(30) DEFAULT NULL,
-  `role` varchar(10) NOT NULL DEFAULT 'me',
-  `territory` varchar(150) DEFAULT NULL,
-  `department` varchar(100) DEFAULT NULL,
-  `reporting_manager` varchar(150) DEFAULT NULL,
-  `is_active` tinyint(4) NOT NULL DEFAULT 1,
-  `tallyfield_rep_id` varchar(64) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `visits` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
