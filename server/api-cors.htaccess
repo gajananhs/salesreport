@@ -1,24 +1,23 @@
 # ---------------------------------------------------------------------------
-# Sales Reporter — allow the PWA on GitHub Pages to call this API (CORS)
-# Upload as:  public_html/Salesreport1/api/.htaccess
-# Only adds response headers for requests coming from the app's address.
-# No PHP file, data or logic is changed. Kept deliberately simple so it
-# works on both Apache and LiteSpeed (Hostinger).
+# Sales Reporter — allow the app on GitHub Pages (gajananhs.github.io) to
+# call this API.  Upload as:  public_html/Salesreport1/api/.htaccess
+#
+# Plain fixed values only (no variables) so it works on LiteSpeed/Hostinger.
+# It only adds response headers; no PHP file, data or logic is changed.
+# Same-site pages (canaresonline.com, incl. TallyField) are unaffected:
+# browsers only check these headers for requests from another site.
 # ---------------------------------------------------------------------------
 
-SetEnvIf Origin "^https://gajananhs\.github\.io$" SR_CORS_ORIGIN=$0
-
 <IfModule mod_headers.c>
-  Header always set Access-Control-Allow-Origin "%{SR_CORS_ORIGIN}e" env=SR_CORS_ORIGIN
-  Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS" env=SR_CORS_ORIGIN
-  Header always set Access-Control-Allow-Headers "Content-Type, X-Session-Token" env=SR_CORS_ORIGIN
-  Header always set Access-Control-Max-Age "600" env=SR_CORS_ORIGIN
+  Header always set Access-Control-Allow-Origin "https://gajananhs.github.io"
+  Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+  Header always set Access-Control-Allow-Headers "Content-Type, X-Session-Token"
+  Header always set Access-Control-Max-Age "600"
 </IfModule>
 
-# Browser pre-check (OPTIONS) from the app: answer OK without running PHP
+# Browser pre-check (OPTIONS): answer OK without running PHP
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteCond %{REQUEST_METHOD} OPTIONS
-  RewriteCond %{HTTP:Origin} ^https://gajananhs\.github\.io$
   RewriteRule ^ - [R=204,L]
 </IfModule>
