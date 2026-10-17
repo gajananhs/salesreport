@@ -22,42 +22,92 @@
     salesdata: svg('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
     profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
     logbook: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/>'),
+    more: svg('<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'),
     receipt: svg('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'),
   };
 
   function $(id) { return document.getElementById(id); }
 
-  // ---------- icons + brand (presentation only) ----------
+  // ---------- Meridian phone frame (presentation only) ----------
+  // Moves the existing page into a phone-shaped container. Elements keep
+  // their ids and event listeners, so app.js behaves exactly as before.
+  var screenEl = null;
+  function buildFrame() {
+    if ($('sr-phone')) return;
+    var phone = document.createElement('div'); phone.id = 'sr-phone';
+    var notch = document.createElement('div'); notch.id = 'sr-notch'; notch.setAttribute('aria-hidden', 'true');
+    screenEl = document.createElement('div'); screenEl.id = 'sr-screen';
+    phone.appendChild(notch); phone.appendChild(screenEl);
+    Array.prototype.slice.call(document.body.childNodes).forEach(function (n) {
+      if (n.nodeType === 1 && n.tagName === 'SCRIPT') return;
+      screenEl.appendChild(n);
+    });
+    document.body.insertBefore(phone, document.body.firstChild);
+  }
+  function toTop() { if (screenEl) screenEl.scrollTop = 0; else window.scrollTo(0, 0); }
+
+  // ---------- icons + 5-tab bar with "More" (presentation only) ----------
+  var PRIMARY = ['home', 'visit', 'expense', 'tasks'];
   function decorateNav() {
     var bar = document.querySelector('.tab-bar');
     if (!bar) return;
-    Array.prototype.forEach.call(bar.querySelectorAll('.tab-btn'), function (b) {
+    var buttons = Array.prototype.slice.call(bar.querySelectorAll('.tab-btn'));
+    buttons.forEach(function (b) {
       var key = b.dataset.view || (b.id === 'btn-open-logbook' ? 'logbook' : '');
       var span = b.querySelector('span');
       if (span && ICONS[key]) { span.innerHTML = ICONS[key]; span.setAttribute('aria-hidden', 'true'); }
       if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', b.textContent.trim());
     });
-    if (!bar.querySelector('.side-brand')) {
-      var brand = document.createElement('div');
-      brand.className = 'side-brand';
-      brand.innerHTML = '<img src="assets/icons/icon-192.png" alt="" width="38" height="38"><div><b>Sales Reporter</b><small>FIELD · VISITS · SPEND</small></div>';
-      bar.insertBefore(brand, bar.firstChild);
-    }
     var qa = { 'qa-visit': ICONS.visit, 'qa-expense': ICONS.receipt, 'qa-plan': ICONS.plans };
     Object.keys(qa).forEach(function (id) {
       var el = $(id) && $(id).querySelector('.action-icon');
       if (el) el.innerHTML = qa[id];
     });
-    var edge = function () { bar.classList.toggle('at-end', bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 2); };
-    bar.addEventListener('scroll', edge, { passive: true });
-    window.addEventListener('resize', edge);
-    edge();
-    // keep the active tab visible on phones and start each tab at the top
+
+    // Extra tabs move into a "More" sheet; their original buttons stay in the
+    // DOM (hidden) so app.js keeps driving them — we simply click them.
+    var extra = buttons.filter(function (b) { return PRIMARY.indexOf(b.dataset.view) < 0; });
+    extra.forEach(function (b) { b.classList.add('sr-overflow'); });
+    var more = document.createElement('button');
+    more.type = 'button'; more.id = 'sr-more-btn'; more.className = 'sr-tab';
+    more.setAttribute('aria-haspopup', 'dialog'); more.setAttribute('aria-label', 'More');
+    more.innerHTML = '<span aria-hidden="true">' + ICONS.more + '</span>More';
+    bar.appendChild(more);
+
+    var sheet = document.createElement('div');
+    sheet.id = 'sr-more'; sheet.hidden = true; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-label', 'More');
+    (screenEl || document.body).appendChild(sheet);
+    function openMore() {
+      var html = '<div class="sheet"><div class="grip"></div><h3>More</h3>';
+      extra.forEach(function (b, i) {
+        if (b.classList.contains('hidden') || b.style.display === 'none') return;
+        var key = b.dataset.view || 'logbook';
+        html += '<button type="button" class="item' + (b.classList.contains('active') ? ' active' : '') + '" data-i="' + i + '"><span class="ico">' + (ICONS[key] || '') + '</span>' + b.textContent.trim() + '</button>';
+      });
+      sheet.innerHTML = html + '</div>';
+      sheet.hidden = false;
+      var first = sheet.querySelector('button.item'); if (first) first.focus();
+    }
+    function closeMore() { sheet.hidden = true; }
+    more.addEventListener('click', openMore);
+    sheet.addEventListener('click', function (e) {
+      var item = e.target.closest && e.target.closest('button.item');
+      if (item) { closeMore(); extra[+item.dataset.i].click(); toTop(); return; }
+      if (e.target === sheet) closeMore();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) closeMore(); });
+
+    // "More" is highlighted whenever one of its screens is the active one
+    var syncMore = function () {
+      var on = extra.some(function (b) { return b.classList.contains('active'); });
+      more.classList.toggle('active', on);
+    };
+    if (window.MutationObserver) extra.forEach(function (b) { new MutationObserver(syncMore).observe(b, { attributes: true, attributeFilter: ['class'] }); });
+    syncMore();
+
     bar.addEventListener('click', function (e) {
       var b = e.target.closest && e.target.closest('.tab-btn');
-      if (!b || !b.dataset.view) return;
-      window.scrollTo(0, 0);
-      if (b.scrollIntoView && window.innerWidth < 600) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+      if (b && b.dataset.view) toTop();
     });
   }
 
@@ -74,7 +124,7 @@
       host.id = 'pwa-banner';
       host.setAttribute('role', 'status');
       host.setAttribute('aria-live', 'polite');
-      document.body.insertBefore(host, document.body.firstChild);
+      (screenEl || document.body).insertBefore(host, (screenEl || document.body).firstChild);
       host.addEventListener('click', onBannerClick);
     }
     var html = '';
@@ -155,6 +205,7 @@
     });
   }
 
+  buildFrame();
   decorateNav();
   explainNetworkErrors();
   paintBanner();

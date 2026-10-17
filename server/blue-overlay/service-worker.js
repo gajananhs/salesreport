@@ -2,7 +2,7 @@
  * Network-first for everything, so changes made on the server show up
  * immediately; cached copies are used only when offline. API calls
  * (api/), approve.php and reset.php are never cached. */
-const CACHE = 'sales-reporter-server-v2';
+const CACHE = 'sales-reporter-server-v3';
 const SHELL = ['./', './offline.html', './manifest.json', './assets/css/style.css', 
   './assets/js/app.js', './assets/css/style.css'];
 self.addEventListener('install', (e) => {
