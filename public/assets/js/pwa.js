@@ -1,74 +1,147 @@
-// Service-worker registration, update flow and install prompt.
-// APP_VERSION is rewritten by scripts/build.mjs (version + content hash).
-export const APP_VERSION = '1.0.0';
+/* Sales Reporter — PWA shell.
+ * Runs after the original app.js. It only adds things around the app:
+ * line icons + sidebar brand, install / update / offline banners, and
+ * the service worker. It never changes app logic or data.
+ * APP_VERSION is stamped by scripts/build.mjs.
+ */
+(function () {
+  'use strict';
+  var APP_VERSION = '2.0.0';
+  window.SR_PWA_VERSION = APP_VERSION;
 
-let deferredPrompt = null;
-const listeners = new Set();
-const emit = (evt) => listeners.forEach((fn) => fn(evt));
-export const onPwaEvent = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
-
-export const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  emit({ type: 'installable' });
-});
-window.addEventListener('appinstalled', () => {
-  deferredPrompt = null;
-  emit({ type: 'installed' });
-});
-
-export const canInstall = () => !!deferredPrompt;
-
-/** Shows the native install prompt. Returns 'accepted' | 'dismissed' | 'unavailable'. */
-export async function install() {
-  if (!deferredPrompt) return 'unavailable';
-  const prompt = deferredPrompt;
-  deferredPrompt = null;
-  prompt.prompt();
-  const { outcome } = await prompt.userChoice;
-  return outcome;
-}
-
-let waitingWorker = null;
-let updateRequested = false;
-export function applyUpdate() {
-  if (!waitingWorker) { window.location.reload(); return; }
-  updateRequested = true;
-  waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-}
-
-export function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
-  // Relative URL + scope keep everything inside the GitHub Pages project path.
-  const go = async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
-      const track = (worker) => {
-        worker.addEventListener('statechange', () => {
-          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-            waitingWorker = worker;
-            emit({ type: 'update-ready' });
-          }
-        });
-      };
-      if (reg.waiting && navigator.serviceWorker.controller) { waitingWorker = reg.waiting; emit({ type: 'update-ready' }); }
-      reg.addEventListener('updatefound', () => reg.installing && track(reg.installing));
-      // look for a new version whenever the app comes back to the foreground
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
-    } catch (err) {
-      console.warn('Service worker registration failed:', err);
-    }
+  var svg = function (body) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
   };
-  if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
-  // Reload only when the user accepted an update — not when the very first
-  // worker claims the page on initial install.
-  let reloading = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading || !updateRequested) return;
-    reloading = true;
-    window.location.reload();
+  var ICONS = {
+    home: svg('<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/>'),
+    visit: svg('<path d="M12 21s-7-5.6-7-11.2A7 7 0 0 1 19 9.8C19 15.4 12 21 12 21z"/><circle cx="12" cy="10" r="2.6"/>'),
+    expense: svg('<path d="M12 2v20M17 5.5c0-1.6-2-2.5-5-2.5S7 4 7 5.8s2 2.4 5 2.9 5 1.3 5 3-2 2.8-5 2.8-5-.9-5-2.5"/>'),
+    tasks: svg('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 12.5l2.5 2.5L16 9.5"/>'),
+    plans: svg('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'),
+    reports: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+    salesdata: svg('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+    profile: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
+    logbook: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/>'),
+    receipt: svg('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'),
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- icons + brand (presentation only) ----------
+  function decorateNav() {
+    var bar = document.querySelector('.tab-bar');
+    if (!bar) return;
+    Array.prototype.forEach.call(bar.querySelectorAll('.tab-btn'), function (b) {
+      var key = b.dataset.view || (b.id === 'btn-open-logbook' ? 'logbook' : '');
+      var span = b.querySelector('span');
+      if (span && ICONS[key]) { span.innerHTML = ICONS[key]; span.setAttribute('aria-hidden', 'true'); }
+      if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', b.textContent.trim());
+    });
+    if (!bar.querySelector('.side-brand')) {
+      var brand = document.createElement('div');
+      brand.className = 'side-brand';
+      brand.innerHTML = '<img src="assets/icons/icon-192.png" alt="" width="38" height="38"><div><b>Sales Reporter</b><small>FIELD · VISITS · SPEND</small></div>';
+      bar.insertBefore(brand, bar.firstChild);
+    }
+    var qa = { 'qa-visit': ICONS.visit, 'qa-expense': ICONS.receipt, 'qa-plan': ICONS.plans };
+    Object.keys(qa).forEach(function (id) {
+      var el = $(id) && $(id).querySelector('.action-icon');
+      if (el) el.innerHTML = qa[id];
+    });
+    var edge = function () { bar.classList.toggle('at-end', bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 2); };
+    bar.addEventListener('scroll', edge, { passive: true });
+    window.addEventListener('resize', edge);
+    edge();
+    // keep the active tab visible on phones and start each tab at the top
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.tab-btn');
+      if (!b || !b.dataset.view) return;
+      window.scrollTo(0, 0);
+      if (b.scrollIntoView && window.innerWidth < 600) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+    });
+  }
+
+  // ---------- banners ----------
+  var state = { offline: !navigator.onLine, update: false, install: false };
+  var deferredPrompt = null;
+  var waitingWorker = null;
+  var updateRequested = false;
+
+  function paintBanner() {
+    var host = $('pwa-banner');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'pwa-banner';
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
+      document.body.insertBefore(host, document.body.firstChild);
+      host.addEventListener('click', onBannerClick);
+    }
+    var html = '';
+    if (state.offline) html += '<div class="pb off"><span>You\'re offline — Sales Reporter needs a connection to load and save data. It will work again as soon as you reconnect.</span></div>';
+    if (state.update) html += '<div class="pb"><span>A new version of the app is ready.</span><button type="button" data-act="update">Reload</button></div>';
+    if (state.install && !state.update) html += '<div class="pb"><span>Install Sales Reporter on this device for one-tap access.</span><span><button type="button" data-act="install">Install</button> <button type="button" class="x" data-act="dismiss" aria-label="Dismiss">✕</button></span></div>';
+    host.innerHTML = html;
+  }
+
+  function onBannerClick(e) {
+    var act = e.target.closest && e.target.closest('[data-act]');
+    if (!act) return;
+    act = act.dataset.act;
+    if (act === 'update') {
+      if (!waitingWorker) { location.reload(); return; }
+      updateRequested = true;
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+    if (act === 'install' && deferredPrompt) {
+      var p = deferredPrompt; deferredPrompt = null;
+      p.prompt();
+      p.userChoice.finally(function () { state.install = false; paintBanner(); });
+    }
+    if (act === 'dismiss') {
+      state.install = false; paintBanner();
+      try { localStorage.setItem('sr_install_dismissed', '1'); } catch (_) { /* ignore */ }
+    }
+  }
+
+  window.addEventListener('online', function () { state.offline = false; paintBanner(); });
+  window.addEventListener('offline', function () { state.offline = true; paintBanner(); });
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var dismissed = false;
+    try { dismissed = localStorage.getItem('sr_install_dismissed') === '1'; } catch (_) { /* ignore */ }
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    state.install = !dismissed && !standalone;
+    paintBanner();
   });
-}
+  window.addEventListener('appinstalled', function () { deferredPrompt = null; state.install = false; paintBanner(); });
+
+  // ---------- service worker ----------
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    var go = function () {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' }).then(function (reg) {
+        var track = function (w) {
+          w.addEventListener('statechange', function () {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) { waitingWorker = w; state.update = true; paintBanner(); }
+          });
+        };
+        if (reg.waiting && navigator.serviceWorker.controller) { waitingWorker = reg.waiting; state.update = true; paintBanner(); }
+        reg.addEventListener('updatefound', function () { if (reg.installing) track(reg.installing); });
+        document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') reg.update().catch(function () {}); });
+      }).catch(function (err) { console.warn('Service worker registration failed:', err); });
+    };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+    var reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (reloading || !updateRequested) return;
+      reloading = true;
+      location.reload();
+    });
+  }
+
+  decorateNav();
+  paintBanner();
+  registerSW();
+})();

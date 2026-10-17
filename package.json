@@ -1,6 +1,6 @@
 {
   "name": "sales-reporter-pwa",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Sales Reporter — offline-first field sales PWA (visits, expenses, tasks, plans, reports). Static site for GitHub Pages.",
   "type": "module",

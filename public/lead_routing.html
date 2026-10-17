@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead Routing — Sales Reporter</title>
+<style>
+:root{--primary:#0a7ea4;--primary-dark:#086b8c;--bg:#f4f6f8;--surface:#fff;--text:#11181c;--muted:#687076;--border:#e5e7eb;--ok:#15803d;--okbg:#dcfce7;--bad:#b91c1c;--badbg:#fee2e2;--warn:#92400e;--warnbg:#fef3c7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:var(--primary);color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;flex:1;min-width:180px}
+header a{color:#fff;font-size:14px}
+main{max-width:1180px;margin:0 auto;padding:16px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#fff;color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.warn{background:var(--warnbg);color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:26px;line-height:1.1}.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat.alert b{color:var(--bad)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px}
+.card h2{font-size:16px;margin:0 0 10px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.filters label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+input,select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);max-width:100%}
+textarea{width:100%;min-height:120px;font:13px/1.4 ui-monospace,Consolas,monospace}
+button,.btn{font:inherit;font-weight:600;padding:9px 14px;border-radius:8px;border:1px solid var(--primary);background:var(--primary);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+button.ghost,.btn.ghost{background:#fff;color:var(--primary)}
+button:disabled{opacity:.5;cursor:default}
+button.cbtn{padding:5px 10px;font-size:13px;white-space:nowrap}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f59e0b;outline-offset:1px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:#fafbfc;position:sticky;top:0}
+td.nowrap{white-space:nowrap}
+tr.unassigned td{background:#fff7f7}
+.sub{color:var(--muted);font-size:12.5px}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.arrow{color:var(--muted)}
+.ulist{display:grid;gap:10px}
+.ucard{border:1px solid #fecaca;background:#fffafa;border-radius:8px;padding:10px 12px}
+.ucard .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.note{font-size:13px;color:var(--muted);margin:6px 0}
+.msg{font-size:13px;margin-top:8px;white-space:pre-wrap}
+.empty{color:var(--muted);padding:18px 0;text-align:center}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+</style>
+  <script src="assets/js/config.js"></script>
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/lead-routing-theme.css">
+  <meta name="theme-color" content="#0F2D5C">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+</head>
+<body>
+<header>
+  <h1>IndiaMART Lead Routing</h1>
+  <span id="agent" class="pill">BuyLead agent: —</span>
+  <a href="./">&larr; Sales Reporter</a>
+</header>
+<main id="app" hidden>
+  <div class="stats" id="stats"></div>
+
+  <div class="card">
+    <div class="filters">
+      <div><label for="f-from">From</label><input type="date" id="f-from"></div>
+      <div><label for="f-to">To</label><input type="date" id="f-to"></div>
+      <div><label for="f-show">Show</label><select id="f-show"><option value="all">All leads</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select></div>
+      <div><label for="f-user">Salesperson</label><select id="f-user"><option value="">Everyone</option></select></div>
+      <button id="btn-refresh">Refresh</button>
+      <button class="ghost" id="btn-csv">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="card" id="unassigned-card" hidden>
+    <h2>Unassigned Leads — allocate manually</h2>
+    <div class="ulist" id="unassigned"></div>
+  </div>
+
+  <div class="card">
+    <h2>BuyLead &rarr; Pincode &rarr; Assigned Salesperson</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Lead date &amp; time</th><th>Lead</th><th>City</th><th>Routing</th><th>Assigned at</th><th>Status</th><th>Contact buyer</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="empty" id="rows-empty" hidden>No leads in this period.</p>
+  </div>
+
+  <div class="two">
+    <div class="card"><h2>By salesperson</h2><div class="scroll"><table><thead><tr><th>Salesperson</th><th>Leads</th><th>Open</th><th>In progress</th><th>Done</th></tr></thead><tbody id="by-sales"></tbody></table></div></div>
+    <div class="card"><h2>Pincodes with no salesperson</h2><p class="note">Unassigned leads in this period, by pincode. Add these to the mapping below.</p><div class="scroll"><table><thead><tr><th>Pincode</th><th>Leads waiting</th></tr></thead><tbody id="unmapped"></tbody></table></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Sales Team Pincode Mapping</h2>
+    <p class="note" id="strict-note"></p>
+    <div class="scroll"><table><thead><tr><th>Salesperson</th><th>Pincodes (checked first)</th><th>States (used when no pincode matches)</th><th>Cities (used when no state matches)</th><th>Status</th></tr></thead><tbody id="mapping"></tbody></table></div>
+    <h2 style="margin-top:16px">Bulk load mapping</h2>
+    <p class="note">One line per entry: <code>pincode, salesperson name</code>. A pincode can be exact (<code>560073</code>), a prefix (<code>5600*</code>) or a range (<code>560001-560110</code>). A state name (<code>Maharashtra</code>) or a city name in place of the pincode maps leads that show no pincode. Routing order: pincode, then state, then city. Part of the salesperson's name is enough (<code>Prem</code> for Prem Kumar Singh). Paste straight from Excel (two columns).</p>
+    <textarea id="imp-rows" placeholder="560073, Mahesh&#10;5600*, Mahesh&#10;600001-600119, Mohanraj&#10;Karnataka, Mahesh&#10;Tumakuru, Mahesh"></textarea>
+    <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <label style="font-size:14px"><input type="checkbox" id="imp-replace"> Replace each listed salesperson's existing pincodes (default: add to them)</label>
+      <button id="btn-import">Load mapping</button>
+      <button class="ghost" id="btn-rerun">Re-run assignment for unassigned leads</button>
+    </div>
+    <div class="msg" id="imp-msg"></div>
+    <p class="note">Edit or delete individual entries in Sales Reporter &rarr; Admin &rarr; IndiaMART Lead Assignment Rules.</p>
+  </div>
+</main>
+<p id="gate" class="empty" hidden>Please <a href="./">log in to Sales Reporter</a> as GM or CEO, then open this page again.</p>
+
+<script>
+  var API = ((window.SR_CONFIG && window.SR_CONFIG.SERVER) || "") + "api/";
+(function () {
+  var token = null;
+  try { token = localStorage.getItem("sr_token"); } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var members = [];
+
+  // Contact Buyer: same one-email-per-lead action as the Leads screen. The buyer address is never sent to this page.
+  function contactCell(l) {
+    var st = String(l.contact_buyer_status || "");
+    if (st === "sent") return '<span class="pill ok">Email sent</span>';
+    if (st === "sending") return '<span class="pill">Email processing</span>';
+    if (st === "failed") return '<span class="pill bad">Email failed &mdash; follow up</span>';
+    if (l.contact_ready) return '<button type="button" class="cbtn" data-contact="' + Number(l.id) + '" title="Send a brief email to this buyer">Contact Buyer</button>';
+    if (l.source === "im_buylead") return '<span class="sub">After the lead is bought</span>';
+    return '<span class="sub">No buyer email</span>';
+  }
+
+  function api(path, body) {
+    return fetch(API + path, {
+      method: body ? "POST" : "GET",
+      headers: { "Content-Type": "application/json", "X-Session-Token": token || "" },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { throw new Error("Server returned an invalid response"); }).then(function (d) {
+        if (!d.ok) { var e = new Error(d.error || "Request failed"); e.status = res.status; throw e; }
+        return d;
+      });
+    });
+  }
+  function fmt(dt) {
+    var m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(dt || "");
+    if (!m) return "";
+    var mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(m[2]) - 1];
+    var h = Number(m[4]);
+    return Number(m[3]) + " " + mon + " " + m[1] + ", " + (h % 12 || 12) + ":" + m[5] + " " + (h >= 12 ? "PM" : "AM");
+  }
+  function query() {
+    var q = "from=" + encodeURIComponent($("f-from").value) + "&to=" + encodeURIComponent($("f-to").value) + "&show=" + $("f-show").value;
+    if ($("f-user").value) q += "&user_id=" + encodeURIComponent($("f-user").value);
+    return q;
+  }
+  function memberOptions() {
+    return '<option value="">Choose salesperson…</option>' + members.map(function (m) { return '<option value="' + Number(m.id) + '">' + esc(m.name) + "</option>"; }).join("");
+  }
+  var statusLabel = { open: "Open", in_progress: "In progress", done: "Done" };
+
+  function load() {
+    $("btn-refresh").disabled = true;
+    api("get_lead_routing_report.php?" + query()).then(function (d) {
+      $("gate").hidden = true; $("app").hidden = false;
+      if (!$("f-from").value) { $("f-from").value = d.from; $("f-to").value = d.to; }
+      members = d.members || [];
+      var cur = $("f-user").value;
+      $("f-user").innerHTML = '<option value="">Everyone</option>' + members.map(function (m) { return '<option value="' + Number(m.id) + '">' + esc(m.name) + "</option>"; }).join("");
+      $("f-user").value = cur;
+
+      var a = d.agent || {}, age = a.last_seen_seconds_ago, el = $("agent");
+      if (a.status === "login_required") { el.textContent = "BuyLead agent: IndiaMART login needed"; el.className = "pill bad"; }
+      else if (age == null) { el.textContent = "BuyLead agent: never connected"; el.className = "pill"; }
+      else if (age < 600) { el.textContent = "BuyLead agent: live"; el.className = "pill ok"; }
+      else { el.textContent = "BuyLead agent: silent " + (age < 7200 ? Math.round(age / 60) + " min" : Math.round(age / 3600) + " h"); el.className = "pill warn"; }
+
+      var t = d.totals;
+      $("stats").innerHTML =
+        '<div class="stat"><b>' + Number(t.total) + "</b><span>Leads</span></div>" +
+        '<div class="stat"><b>' + Number(t.assigned) + "</b><span>Assigned</span></div>" +
+        '<div class="stat' + (t.unassigned ? " alert" : "") + '"><b>' + Number(t.unassigned) + "</b><span>Unassigned</span></div>" +
+        '<div class="stat"><b>' + Number(t.no_pincode) + "</b><span>No pincode on lead</span></div>";
+
+      var un = d.leads.filter(function (l) { return !l.assigned_to; });
+      $("unassigned-card").hidden = !un.length;
+      $("unassigned").innerHTML = un.map(function (l) {
+        return '<div class="ucard"><strong>' + esc(l.lead_product || l.title) + "</strong>" +
+          '<div class="sub">' + esc([l.lead_company, l.lead_contact, l.lead_phone].filter(Boolean).join(" · ")) + "</div>" +
+          '<div class="sub">' + esc([l.lead_city, l.lead_state].filter(Boolean).join(", ") || "City not shown") + " · PIN " + esc(l.lead_pincode || "not shown") + " · " + esc(fmt(l.lead_at)) + "</div>" +
+          '<div class="sub">' + esc(l.assignment_reason || "No rule matched") + "</div>" +
+          '<div class="row"><select aria-label="Salesperson" data-sel="' + Number(l.id) + '">' + memberOptions() + '</select><button data-assign="' + Number(l.id) + '">Assign</button>' + (l.contact_ready || l.contact_buyer_status ? contactCell(l) : "") + '</div></div>';
+      }).join("");
+
+      $("rows-empty").hidden = d.leads.length > 0;
+      $("rows").innerHTML = d.leads.map(function (l) {
+        var who = l.assigned_to ? '<span class="pill ok">' + esc(l.assigned_to_name) + "</span>" : '<span class="pill bad">Unassigned</span>';
+        var pin = l.lead_pincode ? '<span class="pill">' + esc(l.lead_pincode) + "</span>" : '<span class="pill warn">no pincode</span>';
+        return '<tr class="' + (l.assigned_to ? "" : "unassigned") + '">' +
+          '<td class="nowrap">' + esc(fmt(l.lead_at)) + "</td>" +
+          "<td><strong>" + esc(l.lead_product || l.title) + "</strong>" +
+            '<div class="sub">' + (l.source === "im_buylead" ? "BuyLead (open, not purchased)" : "IndiaMART") + " · #" + Number(l.id) + "</div>" +
+            '<div class="sub">' + esc([l.lead_company, l.lead_contact, l.lead_phone].filter(Boolean).join(" · ")) + "</div></td>" +
+          "<td>" + esc([l.lead_city, l.lead_state].filter(Boolean).join(", ")) + "</td>" +
+          '<td><div class="flow">' + pin + '<span class="arrow">&rarr;</span>' + who + '</div><div class="sub">' + esc(l.assignment_reason || "") + "</div></td>" +
+          '<td class="nowrap">' + esc(fmt(l.assigned_at)) + "</td>" +
+          "<td>" + esc(statusLabel[l.status] || l.status) + "</td>" +
+          "<td>" + contactCell(l) + "</td></tr>";
+      }).join("");
+
+      $("by-sales").innerHTML = d.by_salesperson.length ? d.by_salesperson.map(function (s) {
+        return "<tr><td>" + esc(s.name) + "</td><td>" + Number(s.total) + "</td><td>" + Number(s.open) + "</td><td>" + Number(s.in_progress) + "</td><td>" + Number(s.done) + "</td></tr>";
+      }).join("") : '<tr><td colspan="5" class="sub">No assigned leads in this period.</td></tr>';
+      $("unmapped").innerHTML = d.unmapped_pincodes.length ? d.unmapped_pincodes.map(function (u) {
+        return "<tr><td>" + esc(u.pincode) + "</td><td>" + Number(u.leads) + "</td></tr>";
+      }).join("") : '<tr><td colspan="2" class="sub">None.</td></tr>';
+
+      $("strict-note").textContent = !d.mapping.length
+        ? "No pincode mapping loaded yet — leads are still routed by the existing product/region rules. Load the mapping below to switch to pincode routing."
+        : (d.pincode_strict ? "Pincode-only routing is ON: a lead whose pincode has no salesperson goes to Unassigned Leads."
+                            : "Pincode-only routing is OFF: a lead with no pincode match falls through to the product/region rules.");
+      $("mapping").innerHTML = d.mapping.length ? d.mapping.map(function (m) {
+        return "<tr><td>" + esc(m.salespeople.join(", ") || "— nobody —") + '<div class="sub">' + esc(m.label) + "</div></td><td>" + esc(m.pincodes.join(", ")) + "</td><td>" + esc((m.states || []).join(", ")) + "</td><td>" + esc(m.cities.join(", ")) + "</td><td>" + (m.active ? "Active" : "Disabled") + "</td></tr>";
+      }).join("") : '<tr><td colspan="4" class="sub">Empty.</td></tr>';
+    }).catch(function (err) {
+      if (err.status === 401 || err.status === 403) { $("app").hidden = true; $("gate").hidden = false; }
+      else alert(err.message);
+    }).then(function () { $("btn-refresh").disabled = false; });
+  }
+
+  $("btn-refresh").addEventListener("click", load);
+  ["f-show", "f-user", "f-from", "f-to"].forEach(function (id) { $(id).addEventListener("change", load); });
+  $("btn-csv").addEventListener("click", function () {
+    window.location.href = API + "get_lead_routing_report.php?" + query() + "&format=csv&token=" + encodeURIComponent(token || "");
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-contact]") : null;
+    if (!b || b.disabled) return;
+    var id = Number(b.getAttribute("data-contact"));
+    if (!isFinite(id) || id <= 0) return;
+    if (!window.confirm("Send the follow-up email to this buyer now?\nIt can be sent only once for each lead.")) return;
+    b.disabled = true; b.textContent = "Sending\u2026";
+    api("contact_buyer.php", { id: id })
+      .then(function () { $("imp-msg").textContent = "Email sent to the buyer."; })
+      .catch(function (err) { alert(err.message || "Could not send the email"); })
+      .then(load);
+  });
+  $("unassigned").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-assign]"); if (!b) return;
+    var id = Number(b.getAttribute("data-assign"));
+    var sel = document.querySelector('[data-sel="' + id + '"]');
+    if (!sel.value) { sel.focus(); return; }
+    b.disabled = true;
+    api("assign_task.php", { id: id, assigned_to: Number(sel.value) }).then(load).catch(function (err) { alert(err.message); b.disabled = false; });
+  });
+  $("btn-import").addEventListener("click", function () {
+    var rows = $("imp-rows").value;
+    if (!rows.trim()) { $("imp-rows").focus(); return; }
+    this.disabled = true; var btn = this;
+    api("import_pincode_mapping.php", { rows: rows, replace: $("imp-replace").checked ? 1 : 0 }).then(function (d) {
+      var msg = d.saved.map(function (s) { return s.salesperson + ": " + s.pincodes + " pincode entries, " + (s.states || 0) + " states, " + s.cities + " cities"; }).join("\n") || "Nothing saved.";
+      Object.keys(d.matched_as || {}).forEach(function (k) { msg += "\n\"" + k + "\" matched to " + d.matched_as[k]; });
+      Object.keys(d.ambiguous_names || {}).forEach(function (k) { msg += "\nNot loaded \u2014 \"" + k + "\" fits more than one person: " + d.ambiguous_names[k].join(", ") + ". Add one more part of the name."; });
+      if (d.unknown_names.length) msg += "\nNot loaded — no active Sales Reporter user with this name: " + d.unknown_names.join(", ");
+      if (d.bad_lines.length) msg += "\nSkipped lines: " + d.bad_lines.join(" | ");
+      $("imp-msg").textContent = msg;
+      load();
+    }).catch(function (err) { $("imp-msg").textContent = err.message; }).then(function () { btn.disabled = false; });
+  });
+  $("btn-rerun").addEventListener("click", function () {
+    var btn = this; btn.disabled = true;
+    api("reassign_unassigned_leads.php", {}).then(function (d) {
+      $("imp-msg").textContent = "Checked " + d.checked + " unassigned lead(s), assigned " + d.reassigned + ".";
+      load();
+    }).catch(function (err) { $("imp-msg").textContent = err.message; }).then(function () { btn.disabled = false; });
+  });
+
+  if (!token) { $("gate").hidden = false; } else { load(); }
+})();
+</script>
+</body>
+</html>

@@ -5,15 +5,15 @@ Usage:  python3 scripts/generate-icons.py
 Needs:  Pillow  (pip install pillow)
 
 Writes PNGs into public/assets/icons/. The mark is a rising trend line
-ending in an amber dot, set inside a thin amber arc on the deep-green
-brand background (same palette as the app: --deep #16302C, --amber #D9A22C,
+ending in an amber dot, set inside a thin amber arc on the deep-blue
+brand background (same palette as the app: --deep #0F2D5C, --amber #D9A22C,
 --cream #FAF7F0).
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-DEEP = (22, 48, 44, 255)
-DEEP_2 = (31, 63, 57, 255)
+DEEP = (15, 45, 92, 255)
+DEEP_2 = (27, 70, 136, 255)
 AMBER = (217, 162, 44, 255)
 CREAM = (250, 247, 240, 255)
 

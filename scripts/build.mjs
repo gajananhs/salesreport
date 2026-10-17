@@ -70,7 +70,7 @@ async function main() {
   await writeFile(join(OUT, 'service-worker.js'), sw.replace(/const BUILD_ID = '[^']*';/, `const BUILD_ID = '${buildId}';`));
   const pwaPath = join(OUT, 'assets/js/pwa.js');
   const pwa = await readFile(pwaPath, 'utf8');
-  await writeFile(pwaPath, pwa.replace(/export const APP_VERSION = '[^']*';/, `export const APP_VERSION = '${buildId}';`));
+  await writeFile(pwaPath, pwa.replace(/var APP_VERSION = '[^']*';/, `var APP_VERSION = '${buildId}';`));
 
   let bytes = 0;
   for (const f of await walk(OUT)) bytes += (await stat(f)).size;

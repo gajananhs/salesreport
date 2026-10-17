@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# Sales Reporter — CORS for the PWA hosted on GitHub Pages
+#
+# Upload this file to the server as:   /Salesreport/api/.htaccess
+# (hPanel → File Manager → public_html/Salesreport/api/ → upload, then
+#  rename "api-cors.htaccess" to ".htaccess").
+# If api/ already has a .htaccess, paste this block at the END of it instead.
+#
+# It only ADDS response headers so the browser lets the app at
+# https://gajananhs.github.io read the API's replies. It does not change any
+# PHP file, data or logic. Login still requires the normal session token
+# (X-Session-Token header) — CORS alone grants no access.
+#
+# The TallyField endpoints (tf_*.php) are excluded because they already send
+# their own CORS headers from PHP (tf_cors()).
+# ---------------------------------------------------------------------------
+
+<IfModule mod_setenvif.c>
+  # Allowed web-app origins (no trailing slash). Add more lines if needed.
+  SetEnvIf Origin "^https://gajananhs\.github\.io$" SR_CORS_ORIGIN=$0
+  SetEnvIf Origin "^http://localhost:(5173|4173)$" SR_CORS_ORIGIN=$0
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(?!tf_).*\.php$">
+    Header always set Access-Control-Allow-Origin "%{SR_CORS_ORIGIN}e" env=SR_CORS_ORIGIN
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS" env=SR_CORS_ORIGIN
+    Header always set Access-Control-Allow-Headers "Content-Type, X-Session-Token" env=SR_CORS_ORIGIN
+    Header always set Access-Control-Max-Age "600" env=SR_CORS_ORIGIN
+    Header always merge Vary "Origin"
+  </FilesMatch>
+</IfModule>
+
+# Browser pre-flight (OPTIONS) requests are answered here with 204 so they
+# never reach the PHP code (which would reply 401 "Not logged in").
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_METHOD} =OPTIONS
+  RewriteCond %{HTTP:Origin} ^(https://gajananhs\.github\.io|http://localhost:(5173|4173))$
+  RewriteCond %{REQUEST_FILENAME} !/tf_[^/]*\.php$
+  RewriteRule ^ - [R=204,L]
+</IfModule>

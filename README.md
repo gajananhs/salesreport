@@ -1,219 +1,124 @@
-# Sales Reporter — PWA
+# Sales Reporter — PWA (blue Meridian theme, live server)
 
-An offline-first Progressive Web App for field sales teams: log customer and dealer visits, travel expenses and advances, work through assigned tasks and IndiaMART leads, plan the next day and week, and track performance.
+An installable Progressive Web App for the **Sales Reporter** system.
 
-The screens and features follow the Sales Reporter dashboard. The visual design (palette, typography, cards, hero, tab bar, spacing) follows the Meridian PWA. **All data is fictional sample data** that's generated on first launch and stored on the device.
+**Live app:** https://gajananhs.github.io/salesreport/
 
-**Live app:** https://gajananhs.github.io/salesreport/ (GitHub Pages, deployed automatically on every push to `main`)
+- **Full original app.** The original Sales Reporter screens and logic (`assets/js/app.js`) run unchanged. That includes visits, daily work reports, expenses, advance requests and approvals, payments, tasks, IndiaMART leads, lead routing, plans, reports, sales data, the admin panel, TallyField, Tally ledger import/export, Logbook SSO, and password reset.
+- **Live data.** Login, data, approvals, e-mails, IndiaMART sync and Tally sync all stay on the existing server, `https://canaresonline.com/Salesreport/`. No data is copied into this repo. The repo is public, so it contains no personal data and no secrets.
+- **New look.** A blue Meridian theme (navy, amber, Fraunces and IBM Plex) is layered over the original stylesheet. Phones get a bottom tab bar, tablets an icon rail, desktops a full sidebar.
+- **PWA.** Installable on Android, iOS and desktop. The app shell is cached, so it opens instantly, shows an offline notice when there's no connection, and shows a "new version" banner after each deploy.
+
+```
+ Phone / PC  ──►  gajananhs.github.io/salesreport/   (this repo: app shell, GitHub Pages)
+                         │  fetch + X-Session-Token
+                         ▼
+                 canaresonline.com/Salesreport/api/   (existing PHP + MySQL, unchanged)
+```
 
 ---
 
-## Features
+## One-time server step (required)
 
-| Screen | What it does |
-|---|---|
-| **Home** | Live clock and start/end of the field day, today's counts, this week's order-value chart, daily work report (office/field rows), today's value, plans, open tasks, quick actions. In manager view it also shows pending approvals. |
-| **Visits** | Visit form: type, customer autocomplete with auto-fill, category, purpose, product, outcome, follow-up date, quotation/order/payment toggles with values, competitor notes, remarks, optional GPS. Recent visits by period, with a detail sheet for editing or deleting. A follow-up automatically creates a plan. |
-| **Expenses** | Active advance with a balance ring. Expense form with travel mode, km × rate, public transport, boarding, lodging and other costs, bill attachments, and a live total and remaining balance. Advance requests are capped by the rate-master limits. In manager view you can approve or reject team expenses and advances. |
-| **Tasks** | Status filter, counts and overdue tracking. Each task moves Open → In progress → Done. In manager view you can assign tasks and route unassigned IndiaMART leads. |
-| **Plans** | Next-day plan, next-week plan and pending work. Add, edit, mark done, undo and delete. |
-| **Reports** | Eight KPIs for six periods, trends for orders, quotations and payments, a visit-outcome conversion ring and top customers. In manager view: per-member and whole-team reports. Printable. |
-| **Sales data** | Quotations, transfer orders and delivery challans with search and totals. Each opens a line-item sheet that shows GST. |
-| **Profile** | Employment details, per-km rates, company name, rate master, a manager-view switch, install button, connection status, JSON backup and a demo-data reset. |
+The browser only lets the GitHub-hosted app read the API's replies if the API allows that origin. This takes **one new file** on the server. It adds response headers only; no PHP, data or logic changes.
 
-**PWA:** installable on Android, iOS, Windows, macOS and ChromeOS. Works fully offline after the first visit and shows an offline page for anything that wasn't cached. Each deploy shows a "new version" banner. Includes maskable icons, app shortcuts, theme colours and self-hosted fonts (no third-party requests).
+1. In this repo, download `server/api-cors.htaccess`.
+2. In hPanel → **File Manager**, open `public_html/Salesreport/api/`.
+   - **If there's no `.htaccess` in that folder:** upload the file and rename it to **`.htaccess`**.
+   - **If a `.htaccess` already exists:** open it and paste the contents of `api-cors.htaccess` at the end. Don't replace what's already there.
+3. Open https://gajananhs.github.io/salesreport/ and log in with your usual Sales Reporter account.
 
-**Responsive layout:**
-- Phone (under 600 px): bottom tab bar plus a "More" sheet
-- Tablet (600–1023 px): icon rail on the left
-- Desktop (1024 px and up): full sidebar with two-column content
+What the file does:
+- It allows `https://gajananhs.github.io` (and `localhost:5173/4173` for local testing).
+- It answers the browser's OPTIONS pre-flight with 204.
+- It leaves the TallyField endpoints (`tf_*.php`) alone, because they already send their own CORS headers.
+
+Users still need their normal login token. CORS on its own grants no access.
+
+The existing site at `canaresonline.com/Salesreport/` keeps working exactly as before, and both can be used side by side.
 
 ---
 
 ## Project structure
 
 ```
-sales-reporter-pwa/
-├── .github/workflows/deploy.yml   # builds and deploys to GitHub Pages on every push to main
-├── public/                        # the site (source of truth)
-│   ├── index.html                 # app shell
-│   ├── offline.html               # offline fallback page
-│   ├── 404.html                   # GitHub Pages: unknown paths → app root
-│   ├── manifest.json              # web app manifest (relative URLs)
-│   ├── service-worker.js          # precache + runtime caching
-│   ├── robots.txt
-│   ├── .nojekyll                  # serve files as-is (no Jekyll)
+salesreport/
+├── .github/workflows/
+│   ├── deploy.yml              # GitHub Pages deploy on every push to main
+│   └── deploy-hostinger.yml    # optional FTP deploy (manual)
+├── public/                     # the site
+│   ├── index.html              # original index.php markup (PHP removed) + PWA head
+│   ├── lead_routing.html       # original Lead Routing report, pointed at the server
+│   ├── offline.html  404.html  manifest.json  service-worker.js  robots.txt  .nojekyll  .htaccess
 │   └── assets/
-│       ├── css/app.css            # design system + responsive layout
-│       ├── css/fonts.css          # @font-face for self-hosted fonts
-│       ├── fonts/                 # Fraunces, IBM Plex Sans/Mono (woff2, OFL)
-│       ├── icons/                 # 192/512, maskable, apple-touch, favicons
+│       ├── css/style.css               # ORIGINAL stylesheet (unchanged)
+│       ├── css/theme.css               # blue Meridian theme + responsive navigation
+│       ├── css/lead-routing-theme.css  # theme for the lead routing page
+│       ├── css/fonts.css  fonts/       # self-hosted Fraunces / IBM Plex
+│       ├── icons/                      # PWA icons (blue)
 │       └── js/
-│           ├── app.js             # bootstrap, hash router, nav, banners
-│           ├── pwa.js             # SW registration, updates, install prompt
-│           ├── store.js           # state + localStorage persistence
-│           ├── data.js            # fictional sample data generator
-│           ├── metrics.js         # KPI and series calculations
-│           ├── charts.js          # bar chart + ring
-│           ├── ui.js              # header, chips, badges, toast, sheet
-│           ├── util.js            # safe HTML templating, formatting, dates
-│           ├── icons.js           # SVG line icons
-│           └── views/             # home, visits, expenses, tasks, plans,
-│                                  # reports, salesdata, profile
-├── scripts/
-│   ├── build.mjs                  # public/ → dist/, cache-busting, checks
-│   ├── serve.mjs                  # local static server (mimics Pages sub-path)
-│   └── generate-icons.py          # regenerates the PNG icons (Pillow)
+│           ├── config.js       # SERVER address of the backend
+│           ├── app.js          # ORIGINAL app logic (only the server address is patched)
+│           └── pwa.js          # icons, sidebar brand, install/update/offline banners, service worker
+├── server/api-cors.htaccess    # upload to Salesreport/api/.htaccess (see above)
+├── scripts/                    # build, local server, icon generator
 ├── package.json
 └── README.md
 ```
 
-There are no runtime dependencies and no framework. The app is native ES modules, so nothing has to be compiled. The build step only stamps a cache version and checks that the files are consistent.
+### Changes to the original code
 
-### Why it works from a GitHub repository sub-path
+- `app.js`:
+  - The API address comes from `config.js`.
+  - Bill and ticket links (`uploads/...`) are turned into full server URLs with `srvUrl()`.
+  - Nothing else in the file was changed.
+- `index.html`: the original `index.php` markup, word for word, minus the PHP cache-busting tags. The PWA meta tags, `theme.css`, `config.js` and `pwa.js` are added.
+- `lead_routing.html`: the API address comes from `config.js`, and the "back" links point to `./`.
 
-GitHub Pages serves project sites from `https://<user>.github.io/<repo>/`. The app is built to work from there:
+### Changing the server address
 
-- **Relative URLs everywhere.** All asset, manifest, icon and service-worker URLs start with `./` or a bare path, never `/`.
-- **Manifest paths.** `start_url` is `./#/home`, `scope` is `./` and `id` is `./`.
-- **Service worker scope.** The worker registers with `./service-worker.js` and scope `./`. It resolves every cached URL against its own scope.
-- **Hash routing.** Routes look like `#/visits`, so a page reload never asks the server for a path that doesn't exist.
-- **Unknown paths.** `404.html` sends visitors who land on an unknown path back to the app root (`/<repo>/visits` → `/<repo>/#/visits`).
+Edit `public/assets/js/config.js` and set `SERVER` to the new address, ending in `/`. Then commit; the app redeploys automatically. You can also point a single browser at another backend for testing: `localStorage.setItem('sr_server', 'https://…/Salesreport/')`.
 
 ---
 
 ## Local development
 
-Requirements: **Node.js 18 or newer** (nothing to `npm install`).
+Requires Node.js 18 or newer.
 
 ```bash
 git clone https://github.com/gajananhs/salesreport.git
 cd salesreport
-
-npm run dev        # serves public/ at http://localhost:5173/sales-reporter-pwa/
+npm run dev       # http://localhost:5173/sales-reporter-pwa/  (talks to the live server)
+npm run preview   # production build served at http://localhost:4173/sales-reporter-pwa/
+npm run build     # builds dist/; fails if the service-worker precache list is out of date
 ```
 
-To test the production build, including the stamped service worker:
+When you add a file under `public/`, also add it to `PRECACHE` in `public/service-worker.js`. The build tells you if you forget.
 
-```bash
-npm run preview    # builds to dist/ and serves it at http://localhost:4173/sales-reporter-pwa/
-```
+## Deploy
 
-Notes:
-- `localhost` counts as a secure context, so the service worker, offline mode and install prompt all work locally.
-- During development the service worker caches files. After editing, use DevTools → Application → Service workers → **Update on reload**, or hard-reload the page.
-- To try offline mode: DevTools → Network → **Offline**, then reload.
-- To start over with fresh sample data: Profile → **Reset demo data**.
+Every push to `main` builds the app and publishes it to GitHub Pages in about 30 seconds (see `.github/workflows/deploy.yml`). Installed apps then show **"A new version is ready — Reload"**.
 
-### Build
+First-time setup, already done for this repo:
+1. Make the repo **public**.
+2. Set **Settings → Pages → Source** to **GitHub Actions**.
 
-```bash
-npm run build
-```
+## Install the app
 
-The build:
-1. Copies `public/` to `dist/`.
-2. Writes a content hash into `BUILD_ID` in `service-worker.js` and into `APP_VERSION` in `pwa.js`. Every deploy gets a new cache, and old caches are deleted.
-3. **Fails** if any shipped file is missing from the service worker's `PRECACHE` list, if a listed file is missing, or if the manifest uses an absolute path.
+- **Android / desktop Chrome or Edge:** use the **Install** banner, or the install icon in the address bar.
+- **iPhone / iPad:** open the link in Safari, tap **Share**, then **Add to Home Screen**.
 
-When you add a file under `public/`, add it to `PRECACHE` in `public/service-worker.js`. The build tells you if you forget.
+## How it was tested
 
-### Regenerate icons (optional)
-
-```bash
-pip install pillow
-npm run icons
-```
-
----
-
-## Deploy — which option?
-
-| Repo visibility | Hosting | Workflow | Cost |
-|---|---|---|---|
-| **Public** (current) | GitHub Pages | `.github/workflows/deploy.yml` | Free |
-| Private | Hostinger (your existing site) | `.github/workflows/deploy-hostinger.yml` (manual; re-enable its `push` trigger) | Free (uses your existing hosting) |
-| Private | GitHub Pages | `deploy.yml` (remove its `if:` line) | GitHub Pro or Team plan |
-
-The GitHub Pages workflow runs on every push to `main` and skips itself if the repo is made private. The Hostinger workflow is manual until you enable its `push` trigger.
-
-> A private repo keeps the **source code** private. The deployed app is a public web address either way, which is normal for a PWA. GitHub Pages can only restrict *who can open the site* on GitHub Enterprise.
-
-## Deploy to Hostinger automatically (private repo)
-
-This option needs no GitHub upgrade. Every push builds the app and uploads only the changed files over FTPS.
-
-1. **Create an FTP account** in Hostinger hPanel: **Files → FTP Accounts**. Give it a folder such as `public_html/salesreporter-app`. Note the **FTP hostname**, **username** and **password**.
-2. **Add four secrets** in the GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**:
-
-   | Name | Example |
-   |---|---|
-   | `FTP_SERVER` | `ftp.canaresonline.com` |
-   | `FTP_USERNAME` | `u123456789.salesapp` |
-   | `FTP_PASSWORD` | the FTP password |
-   | `FTP_SERVER_DIR` | `./` if the FTP account is already locked to the app folder; otherwise `public_html/salesreporter-app/` (must end with `/`) |
-
-3. **Run it.** Open **Actions → Deploy to Hostinger (FTP) → Run workflow**, or simply push to `main`.
-4. **Open the site** at `https://canaresonline.com/salesreporter-app/`. HTTPS must be enabled on the domain; Hostinger's free SSL is enough.
-
-The included `public/.htaccess` forces HTTPS, sets the cache headers the service worker needs, and enables compression.
-
-Other free hosts that also auto-deploy from private repos (connect the repo once in their dashboard, then set build command `npm run build` and output folder `dist`): **Cloudflare Pages**, **Netlify**, **Vercel**.
-
-## Deploy to GitHub Pages (public repo)
-
-The repository already includes the workflow at `.github/workflows/deploy.yml`.
-
-### Using a new repository
-
-1. Create an empty repository on GitHub, for example `sales-reporter-pwa`.
-2. Push the code:
-   ```bash
-   cd sales-reporter-pwa
-   git init
-   git add .
-   git commit -m "Sales Reporter PWA"
-   git branch -M main
-   git remote add origin https://github.com/<your-user>/sales-reporter-pwa.git
-   git push -u origin main
-   ```
-3. On GitHub, open **Settings → Pages**. Under **Build and deployment → Source**, choose **GitHub Actions**.
-4. Open the **Actions** tab. The *Deploy to GitHub Pages* run starts on every push to `main`; you can also start it from the tab with **Run workflow**. It takes about a minute.
-5. Open `https://<your-user>.github.io/sales-reporter-pwa/`.
-
-The repository name can be anything because all paths are relative. A custom domain (Settings → Pages → Custom domain) also works without code changes.
-
-### Updating
-
-Push to `main`. The workflow rebuilds and redeploys. Open apps detect the new service worker and show **"A new version is ready — Reload."**
-
----
-
-## Installing the app
-
-- **Android (Chrome):** use the in-app **Install** banner, or ⋮ menu → *Install app*.
-- **iPhone / iPad (Safari):** tap Share → *Add to Home Screen*.
-- **Desktop (Chrome / Edge):** click the install icon in the address bar, or use Profile → **Install**.
-
-After installation the app opens full-screen, works offline, and has shortcuts for *Log visit*, *Log expense* and *Reports* (long-press the icon on Android, right-click on desktop).
-
----
-
-## Data and privacy
-
-- All records stay in the browser's `localStorage` on the device. Nothing is sent to any server.
-- Bill attachments: only the file names are recorded in this demo.
-- GPS is requested only when you tap **Capture** on the Visits screen. It is captured automatically only if you granted permission earlier.
-- Profile → **Download backup (JSON)** exports everything.
-
-To connect a real backend later, replace the reads and writes in `assets/js/store.js` with API calls. The views only use `store.get()`, `store.update()` and `store.subscribe()`.
-
----
-
-## Browser support
-
-The latest two versions of Chrome, Edge, Firefox and Safari (macOS and iOS 15.4+), and Samsung Internet. The app uses ES modules, CSS grid, `:focus-visible` and `dvh` units, with fallbacks where needed.
+The original PHP backend was run locally (Apache + PHP 8.3 + MariaDB) with `server/api-cors.htaccess` in place, and the PWA was served from a different origin, the same way GitHub Pages serves it. Tested:
+- logging in as an executive and as the GM
+- saving a visit and a plan
+- the home totals updating
+- every tab at phone, tablet and desktop sizes
+- the admin panel (rate master, approvals, TallyField, team, lead rules)
+- the Lead Routing page
+- the service worker
 
 ## Licence
 
-The code is MIT. The fonts (Fraunces, IBM Plex) are under the SIL Open Font License; see `public/assets/fonts/OFL-*.txt`.
+The code is MIT. The fonts are under the SIL Open Font License (`public/assets/fonts/OFL-*.txt`).

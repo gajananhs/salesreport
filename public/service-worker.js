@@ -1,5 +1,9 @@
 /* Sales Reporter — service worker
  *
+ * Caches only the app shell (this GitHub Pages folder). Calls to the
+ * Sales Reporter server (another origin) are never cached — data is
+ * always live.
+ *
  * BUILD_ID is replaced by scripts/build.mjs with a hash of every shipped
  * file, so each deploy gets a fresh cache and old caches are removed.
  * PRECACHE must list every file the app needs offline; the build fails if
@@ -18,25 +22,14 @@ const PRECACHE = [
   './index.html',
   './offline.html',
   './manifest.json',
-  './assets/css/app.css',
+  './lead_routing.html',
   './assets/css/fonts.css',
+  './assets/css/style.css',
+  './assets/css/theme.css',
+  './assets/css/lead-routing-theme.css',
+  './assets/js/config.js',
   './assets/js/app.js',
-  './assets/js/charts.js',
-  './assets/js/data.js',
-  './assets/js/icons.js',
-  './assets/js/metrics.js',
   './assets/js/pwa.js',
-  './assets/js/store.js',
-  './assets/js/ui.js',
-  './assets/js/util.js',
-  './assets/js/views/expenses.js',
-  './assets/js/views/home.js',
-  './assets/js/views/plans.js',
-  './assets/js/views/profile.js',
-  './assets/js/views/reports.js',
-  './assets/js/views/salesdata.js',
-  './assets/js/views/tasks.js',
-  './assets/js/views/visits.js',
   './assets/icons/apple-touch-icon.png',
   './assets/icons/favicon-16.png',
   './assets/icons/favicon-32.png',
