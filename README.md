@@ -4,7 +4,7 @@ An offline-first Progressive Web App for field sales teams: log customer and dea
 
 The screens and features follow the Sales Reporter dashboard. The visual design (palette, typography, cards, hero, tab bar, spacing) follows the Meridian PWA. **All data is fictional sample data** that's generated on first launch and stored on the device.
 
-**Live app:** https://canaresonline.com/salesreporter-app/ (Hostinger, deployed automatically from this private repo)
+**Live app:** https://gajananhs.github.io/salesreport/ (GitHub Pages, deployed automatically on every push to `main`)
 
 ---
 
@@ -131,11 +131,11 @@ npm run icons
 
 | Repo visibility | Hosting | Workflow | Cost |
 |---|---|---|---|
-| **Private** | Hostinger (your existing site) | `.github/workflows/deploy-hostinger.yml` | Free (uses your existing hosting) |
-| Public | GitHub Pages | `.github/workflows/deploy.yml` | Free |
+| **Public** (current) | GitHub Pages | `.github/workflows/deploy.yml` | Free |
+| Private | Hostinger (your existing site) | `.github/workflows/deploy-hostinger.yml` (manual; re-enable its `push` trigger) | Free (uses your existing hosting) |
 | Private | GitHub Pages | `deploy.yml` (remove its `if:` line) | GitHub Pro or Team plan |
 
-Both workflows run on every push to `main`. The GitHub Pages workflow skips itself automatically when the repo is private.
+The GitHub Pages workflow runs on every push to `main` and skips itself if the repo is made private. The Hostinger workflow is manual until you enable its `push` trigger.
 
 > A private repo keeps the **source code** private. The deployed app is a public web address either way, which is normal for a PWA. GitHub Pages can only restrict *who can open the site* on GitHub Enterprise.
 

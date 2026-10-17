@@ -12,9 +12,11 @@ name: Deploy to Hostinger (FTP)
 # The app will then be live at https://canaresonline.com/salesreporter-app/
 # (all paths in the app are relative, so any folder name works).
 
+# Manual only for now (the app is hosted on GitHub Pages). To deploy to
+# Hostinger on every push as well, add the secrets below and put back:
+#   push:
+#     branches: [main]
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
