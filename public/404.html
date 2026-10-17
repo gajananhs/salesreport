@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Reporter</title>
+<meta name="robots" content="noindex">
+<script>
+  // GitHub Pages serves this file for any unknown path. Send the visitor to
+  // the app root of this project site, keeping the requested screen as a
+  // hash route: /<repo>/visits  ->  /<repo>/#/visits
+  (function () {
+    var parts = location.pathname.split('/').filter(Boolean);
+    var onGithubIo = /\.github\.io$/i.test(location.hostname);
+    // Project sites live under /<repo>/; user sites and custom domains live at /
+    var base = onGithubIo && parts.length ? '/' + parts[0] + '/' : '/';
+    var rest = onGithubIo && parts.length ? parts.slice(1) : parts;
+    var screen = rest[0] ? '#/' + encodeURIComponent(rest[0]) : '';
+    location.replace(base + screen);
+  })();
+</script>
+</head>
+<body style="font-family:system-ui,sans-serif;background:#EDEAE2;color:#1D2B26;text-align:center;padding:60px 16px">
+  <p>Redirecting to Sales Reporter… <a href="./">Open the app</a></p>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "sales-reporter-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sales Reporter — offline-first field sales PWA (visits, expenses, tasks, plans, reports). Static site for GitHub Pages.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs public 5173",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/build.mjs && node scripts/serve.mjs dist 4173",
+    "icons": "python3 scripts/generate-icons.py"
+  },
+  "license": "MIT"
+}

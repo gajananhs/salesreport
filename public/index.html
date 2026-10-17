@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-IN" class="booting">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sales Reporter</title>
+<meta name="description" content="Field sales reporting: log visits and expenses, track tasks, plans and performance — works offline.">
+
+<!-- PWA metadata (all paths relative so the app runs from a GitHub Pages sub-path) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16302C">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sales Reporter">
+<meta name="application-name" content="Sales Reporter">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+
+<link rel="preload" href="assets/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* first paint before the JS modules boot */
+  html.booting #view::before{content:"Loading…"; display:block; padding:40px 0; text-align:center; color:#7C9484; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="side-brand" href="#/home" style="text-decoration:none">
+      <img src="assets/icons/icon-192.png" alt="" width="36" height="36">
+      <div><b>Sales Reporter</b><small>FIELD · VISITS · SPEND</small></div>
+    </a>
+    <nav class="side-nav" id="side-nav"></nav>
+    <div class="side-foot">
+      <span class="net" id="side-net">Online</span><br>
+      <span id="side-company"></span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <main class="screen" id="screen">
+      <div id="banners"></div>
+      <div id="view"></div>
+      <noscript><div class="card" style="margin-top:20px"><h3>JavaScript required</h3><p class="footnote">Sales Reporter needs JavaScript enabled to run.</p></div></noscript>
+    </main>
+  </div>
+
+  <nav class="tabbar" id="tabbar" aria-label="Main navigation"></nav>
+</div>
+
+<datalist id="customer-list"></datalist>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
