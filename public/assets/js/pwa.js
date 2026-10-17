@@ -141,7 +141,22 @@
     });
   }
 
+  // Friendlier text when the server can't be reached (network down or the
+  // server's api/.htaccess CORS file missing). Presentation only.
+  function explainNetworkErrors() {
+    var msg = 'Can\u2019t reach the Sales Reporter server. Check your internet connection. ' +
+      'If this keeps happening, the server needs its one-time setup file (api/.htaccess) \u2014 see the README.';
+    ['login-error', 'register-error', 'forgot-error'].forEach(function (id) {
+      var el = $(id);
+      if (!el || !window.MutationObserver) return;
+      new MutationObserver(function () {
+        if (/failed to fetch|networkerror|load failed/i.test(el.textContent)) el.textContent = msg;
+      }).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+  }
+
   decorateNav();
+  explainNetworkErrors();
   paintBanner();
   registerSW();
 })();
