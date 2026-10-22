@@ -203,6 +203,33 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 #pwa-banner button{background:var(--deep); color:var(--cream); border:none; border-radius:8px; padding:5px 10px; font-size:11px; font-weight:600; cursor:pointer;}
 #pwa-banner .x{background:transparent; color:inherit;}
 
+/* ---------- MOBILE AUTH FRAME ----------
+   Phones (<=480px): the login / forgot / register screens sit in the same
+   phone-frame card the desktop layout uses (navy border, rounded corners,
+   notch) on the grey page, with ~23px side margins. App screens after login
+   stay full screen. Desktop is not affected. Fallback colours keep this
+   working if the page's own variables differ. */
+@media (max-width:480px){
+  html:has(.auth-view:not(.hidden)), body:has(.auth-view:not(.hidden)),
+  body:has(.auth-view:not(.hidden)) #sr-phone,
+  body:has(.auth-view:not(.hidden)) #sr-screen{background:var(--page, #E6EBF3); overflow-x:hidden;}
+  body .auth-view{
+    position:relative; display:block; width:auto; max-width:none;
+    min-height:calc(100vh - 32px);
+    min-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin:16px clamp(12px, 6vw, 23px) calc(16px + env(safe-area-inset-bottom));
+    padding:54px 20px 28px; /* = desktop frame: 26px screen top + 28px view */
+    background:var(--panel, #FFFFFF); border:8px solid var(--deep, #0F2D5C); border-radius:40px;
+    box-shadow:0 24px 60px rgba(15,45,92,.28);
+  }
+  body .auth-view::before{
+    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:31%; max-width:120px; height:22px; background:var(--deep, #0F2D5C); border-radius:0 0 16px 16px;
+  }
+  body .auth-view .auth-card{width:100%; max-width:none; padding:24px 4px; background:transparent; box-shadow:none; border-radius:0;}
+  body .auth-view .error-msg{max-width:100%; padding:0 2px; line-height:1.5; overflow-wrap:break-word;}
+}
+
 @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 @media print{ #sr-phone{width:auto; height:auto; border:none; box-shadow:none; margin:0;} #sr-screen{position:static;} .tab-bar, #pwa-banner, .toast, #sr-notch{display:none !important;} }
 

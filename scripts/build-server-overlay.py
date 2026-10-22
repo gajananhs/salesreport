@@ -2,7 +2,7 @@
 """Build the self-contained server overlay (index.php with the theme and PWA
 shell embedded) from the ORIGINAL Sales Reporter index.php.
 
-Usage: python3 scripts/build-server-overlay.py <original index.php> <out dir>
+Usage: python3 scripts/build-server-overlay.py <original or overlay index.php> <out dir>
 Fonts and icons are loaded from the GitHub Pages copy of this repo.
 """
 import sys, json, pathlib
@@ -24,6 +24,15 @@ s = s.replace('<meta name="theme-color" content="#0a7ea4">', '''<meta name="them
   <link rel="apple-touch-icon" href="''' + GH + '''assets/icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="''' + GH + '''assets/icons/favicon-32.png">''')
 lines = s.split('\n')
+# Refresh mode: <original index.php> may also be a previously built overlay
+# index.php — its embedded theme/PWA blocks are removed and re-embedded.
+def strip_block(lines, start_marker, end_line):
+    if not any(start_marker in l for l in lines): return lines
+    a = next(k for k, l in enumerate(lines) if start_marker in l)
+    b = next(k for k in range(a, len(lines)) if lines[k] == end_line)
+    return lines[:a] + lines[b + 1:]
+lines = strip_block(lines, '<!-- Meridian-style theme (embedded', '  </style>')
+lines = strip_block(lines, '<!-- PWA shell: phone frame', '  </script>')
 i = [k for k, l in enumerate(lines) if '<link rel="stylesheet" href="assets/css/style.css' in l]; assert len(i) == 1
 lines.insert(i[0] + 1, '  <!-- Meridian-style theme (embedded: no extra files needed) -->\n  <style>\n' + fonts + '\n' + theme + '\n  </style>')
 j = [k for k, l in enumerate(lines) if '<script src="assets/js/app.js' in l]; assert len(j) == 1
