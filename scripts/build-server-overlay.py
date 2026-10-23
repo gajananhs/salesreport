@@ -40,7 +40,7 @@ lines.insert(j[0] + 1, '  <!-- PWA shell: phone frame, 5-tab bar, banners, insta
 out.mkdir(parents=True, exist_ok=True)
 (out / 'index.php').write_text('\n'.join(lines))
 man = {"id": "./", "name": "Sales Reporter", "short_name": "Sales Reporter", "description": "Log visits, expenses, advances, tasks and plans.",
-       "start_url": "./", "scope": "./", "display": "standalone", "orientation": "any", "background_color": "#E6EBF3", "theme_color": "#0F2D5C",
+       "start_url": "./", "scope": "./", "display": "standalone", "launch_handler": {"client_mode": ["navigate-existing", "auto"]}, "orientation": "any", "background_color": "#E6EBF3", "theme_color": "#0F2D5C",
        "categories": ["business", "productivity"],
        "icons": [{"src": GH + "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
                  {"src": GH + "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},

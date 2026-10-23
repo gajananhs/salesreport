@@ -205,6 +205,24 @@
     });
   }
 
+  // Logbook hand-off opens as a real link (new window, no opener), so an
+  // installed Logbook app picks it up instead of a browser tab. app.js uses
+  // window.open(url, "_blank", "noopener") only for that hand-off; same
+  // result when Logbook isn't installed. Every other window.open is untouched.
+  function openHandoffAsLink() {
+    var nativeOpen = window.open;
+    window.open = function (url, target, features) {
+      if (url && target === '_blank' && /noopener/i.test(features || '')) {
+        var a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.style.display = 'none';
+        document.body.appendChild(a); a.click(); a.remove();
+        return null; // window.open with noopener also returns null
+      }
+      return nativeOpen.apply(window, arguments);
+    };
+  }
+
+  openHandoffAsLink();
   buildFrame();
   decorateNav();
   explainNetworkErrors();
