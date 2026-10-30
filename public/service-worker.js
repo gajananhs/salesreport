@@ -26,6 +26,7 @@ const PRECACHE = [
   './assets/css/fonts.css',
   './assets/css/style.css',
   './assets/css/theme.css',
+  './assets/css/readable.css',
   './assets/css/lead-routing-theme.css',
   './assets/js/config.js',
   './assets/js/logbook-tasks.js',
