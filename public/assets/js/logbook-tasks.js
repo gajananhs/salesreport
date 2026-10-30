@@ -1,12 +1,12 @@
 /* ============================================================
-   SALES REPORTER — Logbook tasks on the Task tab
+   SALES REPORTER \u2014 Logbook tasks on the Task tab
    ------------------------------------------------------------
    Adds the Salesreport team's Logbook tasks (canaresonline.com/logbook)
    to the Task tab, and an Employee filter for GM / CEO.
 
-   Loaded by every copy of the app — GitHub Pages, the server copy
-   (canaresonline.com/Salesreport…/index.php: one <script> line, see
-   README) and canaresai.com's Sales Report — so they all show the same.
+   Loaded by every copy of the app \u2014 GitHub Pages, the server copy
+   (canaresonline.com/Salesreport\u2026/index.php: one <script> line, see
+   README) and canaresai.com's Sales Report \u2014 so they all show the same.
 
    How:
      * app.js loads the Task tab with api/get_tasks.php. This file wraps
@@ -16,7 +16,7 @@
        canaresonline.com and *.github.io), or SR_CONFIG.LOGBOOK_DATA when a
        host serves it itself (canaresai.com). Cached for 30 s, like Logbook.
      * Salesreport team = the Sales Reporter's own member list
-       (get_members.php — GM / CEO), or just the signed-in person. A Logbook
+       (get_members.php \u2014 GM / CEO), or just the signed-in person. A Logbook
        user is a member when their Logbook name equals the member's Logbook
        name or name, ignoring capitals (the same match as Logbook sign-on).
        A task is shown when a member is assigned to it or created it;
@@ -24,8 +24,8 @@
      * GM / CEO see the whole team; anyone else only their own tasks.
      * Nothing is copied or written: each Logbook task appears once
        (id "lb_<Logbook id>"), old ones included, edits show at once.
-       The cards are read-only here — the task is updated in Logbook.
-     * Logbook unreachable → the Task tab is exactly as before.
+       The cards are read-only here \u2014 the task is updated in Logbook.
+     * Logbook unreachable \u2192 the Task tab is exactly as before.
    ============================================================ */
 (function () {
   "use strict";
@@ -114,7 +114,7 @@
       var desc = (t.description || "").trim();
       if (last) {
         var note = "Latest update (" + (last.date || "") + ", " + (last.progressPct || 0) + "%)" + (last.note ? ": " + last.note : "");
-        desc = desc ? desc + " — " + note : note;
+        desc = desc ? desc + " \u2014 " + note : note;
       }
       var created = t.createdAt || "";
       var member = memberOf[to];
@@ -130,7 +130,7 @@
         assigned_to: member && member.id != null ? member.id : "lb_" + safeId(to),
         assigned_to_name: toName,
         assigned_by_name: byName,
-        assignment_reason: "Logbook — assigned by " + (byName || "?") + " to " + (toName || "?") + " on " + (created.slice(0, 10) || "?"),
+        assignment_reason: "Logbook \u2014 assigned by " + (byName || "?") + " to " + (toName || "?") + " on " + (created.slice(0, 10) || "?"),
         created_at: created,
         completed_at: t.completedAt || null,
       });
@@ -218,7 +218,7 @@
         if (badge) badge.textContent = "Logbook";
         var note = document.createElement("span");
         note.className = "rc-sub";
-        note.textContent = " \u00B7 From Logbook — update it in Logbook";
+        note.textContent = " \u00B7 From Logbook \u2014 update it in Logbook";
         (el.parentNode || card).appendChild(note);
       }
       el.remove();
