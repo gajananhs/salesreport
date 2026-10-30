@@ -234,6 +234,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 @media print{ #sr-phone{width:auto; height:auto; border:none; box-shadow:none; margin:0;} #sr-screen{position:static;} .tab-bar, #pwa-banner, .toast, #sr-notch{display:none !important;} }
 
   </style>
+  <link rel="stylesheet" href="https://gajananhs.github.io/salesreport/assets/css/readable.css">
 </head>
 <body>
 

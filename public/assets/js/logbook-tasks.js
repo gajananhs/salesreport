@@ -33,6 +33,17 @@
   window.__srLogbookTasks = true;
 
   var cfg = window.SR_CONFIG || {};
+  var SELF = (document.currentScript && document.currentScript.src) || "";
+
+  // Full screen + readable text (assets/css/readable.css, next to this file):
+  // index.html links it itself; the server copy gets it from here.
+  (function () {
+    if (!SELF || document.querySelector('link[href$="assets/css/readable.css"]')) return;
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = SELF.replace(/assets\/js\/logbook-tasks\.js(\?.*)?$/, "assets/css/readable.css");
+    document.head.appendChild(link);
+  })();
   var LOGBOOK_DATA = cfg.LOGBOOK_DATA || "https://canaresonline.com/logbook/api/bootstrap.php";
   var CACHE_MS = 30000;
   var ASSIGNERS = { gm: 1, ceo: 1 };       // app.js isTaskAssignerRole()
