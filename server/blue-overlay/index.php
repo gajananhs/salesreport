@@ -1167,6 +1167,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
     </div>
   </div>
 
+  <script src="https://gajananhs.github.io/salesreport/assets/js/logbook-tasks.js"></script>
   <script src="assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/assets/js/app.js'); ?>"></script>
   <!-- PWA shell: phone frame, 5-tab bar, banners, install, service worker (embedded) -->
   <script>
