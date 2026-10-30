@@ -28,6 +28,7 @@ const PRECACHE = [
   './assets/css/theme.css',
   './assets/css/lead-routing-theme.css',
   './assets/js/config.js',
+  './assets/js/logbook-tasks.js',
   './assets/js/app.js',
   './assets/js/pwa.js',
   './assets/icons/apple-touch-icon.png',

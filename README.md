@@ -39,6 +39,18 @@ The existing site at `canaresonline.com/Salesreport1/` keeps working exactly as 
 
 ---
 
+## Logbook tasks on the Task tab
+
+The Task tab also lists the Logbook tasks (canaresonline.com/logbook) that Salesreport team members are assigned to or created, old ones included. GM / CEO get an **Employee** filter that shows the tasks assigned to one person. `assets/js/logbook-tasks.js` does this in the browser. It reads Logbook's `api/bootstrap.php` and changes nothing in either app. Logbook cards are read-only here; update them in Logbook. A Logbook user counts as a team member when their Logbook name equals the member's **Logbook name** (Team page) or name.
+
+- **GitHub Pages:** this works as soon as it is deployed.
+- **Server copy (`canaresonline.com/Salesreport…/index.php`):** add this one line just before the `assets/js/app.js` script tag. `server/blue-overlay/index.php` already has it. Later updates then arrive without touching the server.
+
+  ```html
+  <script src="https://gajananhs.github.io/salesreport/assets/js/logbook-tasks.js"></script>
+  ```
+- **canaresai.com → Sales Report:** serves this app, and the script, through the ERP.
+
 ## Project structure
 
 ```
