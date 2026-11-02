@@ -46,3 +46,9 @@ input, select, textarea{font-size:14.5px; font-weight:500; color:var(--ink);}
 .tab-btn, #sr-more-btn{font-size:11.5px; font-weight:700;}
 .tab-btn span svg, #sr-more-btn svg{width:22px; height:22px;}
 .toast{font-size:14px; font-weight:600;}
+
+/* Totals bars (Total Expense, Balance, Period Total, Claimed / Paid / Pending):
+   theme.css made them pale but left style.css's white text, so they read blank. */
+.total-bar, .total-bar span, .total-bar strong{color:var(--ink) !important;}
+.total-bar{font-size:14px; font-weight:600;}
+.total-bar strong{font-weight:700;}
