@@ -58,6 +58,9 @@
   // tasks join the Task tab. SR_CONFIG.SALES_TEAM overrides it.
   var DEFAULT_TEAM = ["Ramji", "Sunitha", "Tejas", "Mr. Mahesh", "Vipin", "Sukanya", "Prem Kumar Singh", "Mohanraj"];
   var TEAM_NAMES = Array.isArray(cfg.SALES_TEAM) && cfg.SALES_TEAM.length ? cfg.SALES_TEAM : DEFAULT_TEAM;
+  // Who approves rather than logs: their Expenses tab shows the team's
+  // expenses to approve instead of the entry forms. SR_CONFIG.APPROVERS overrides.
+  var APPROVERS = Array.isArray(cfg.APPROVERS) && cfg.APPROVERS.length ? cfg.APPROVERS : ["Gajanan"];
 
   var lbData = null, lbAt = 0;
   var people = null, peopleToken = null;  // TEAM_NAMES matched to Sales Reporter accounts
@@ -218,6 +221,7 @@
     var get = !(init && init.method && init.method !== "GET");
     if (get && EXPENSES.test(url.split("#")[0])) {
       if (!people && isAssigner(viewer())) team(viewer());   // fills the Employee lists
+      if (isApprover()) setTimeout(loadTeamExpenses, 0);      // Expenses tab opened / refreshed
       return expensesFetch(url, input, init);
     }
     var p = nativeFetch(input, init);
@@ -253,6 +257,8 @@
       reload: "tasks-status-filter", needsAccount: false },
     { id: "expense-employee-filter", after: ["expense-period"], all: "My expenses",
       reload: "expense-period", needsAccount: true },
+    { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All marketing team",
+      reload: "sr-te-status", needsAccount: true },
   ];
 
   function fillEmployees() {
@@ -304,6 +310,129 @@
     if (isAssigner(viewer()) && read("sr_token")) team(viewer());
   }
 
+  // ---------------- Approver view (Gajanan): team expenses, no entry forms ----------------
+  function isApprover() {
+    var u = viewer();
+    if (!isAssigner(u)) return false;
+    var k = nameKey(u.name);
+    return APPROVERS.some(function (n) { var a = nameKey(n); return a && (k === a || k.indexOf(a) === 0); });
+  }
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+  function money(v) { return "₹" + (Number(v) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
+  function srApi(path, body) {
+    var opts = { headers: { "X-Session-Token": read("sr_token") || "", "Content-Type": "application/json" } };
+    if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
+    return nativeFetch(API_BASE + path, opts).then(function (r) {
+      return r.json().catch(function () { throw new Error("Server returned an invalid response"); });
+    }).then(function (j) { if (!j || !j.ok) throw new Error((j && j.error) || "Request failed"); return j; });
+  }
+
+  var APPROVER_CSS =
+    "body.sr-approver #view-expense > :not(.app-header):not(#sr-team-exp){display:none !important;}" +
+    "body.sr-approver #btn-adv-new, body.sr-approver #adv-list-view > h3.section-title, body.sr-approver #adv-req-list{display:none !important;}" +
+    "#sr-team-exp .te-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}" +
+    "#sr-team-exp .te-approve{border-color:var(--ok,#2F7A4F) !important; color:var(--ok,#2F7A4F) !important;}" +
+    "#sr-team-exp .te-reject{border-color:var(--red,#B85450) !important; color:var(--red,#B85450) !important;}" +
+    "#sr-team-exp .section-title{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}";
+
+  function setupApproverView() {
+    var on = isApprover();
+    document.body.classList.toggle("sr-approver", on);
+    var view = document.getElementById("view-expense");
+    if (!view) return;
+    var h2 = view.querySelector(".app-header h2");
+    if (h2) {
+      if (!h2.getAttribute("data-orig")) h2.setAttribute("data-orig", h2.textContent);
+      h2.textContent = on ? "Team Expenses" : h2.getAttribute("data-orig");
+    }
+    if (!on || document.getElementById("sr-team-exp")) return;
+    if (!document.getElementById("sr-approver-css")) {
+      var st = document.createElement("style");
+      st.id = "sr-approver-css"; st.textContent = APPROVER_CSS;
+      document.head.appendChild(st);
+    }
+    var box = document.createElement("div");
+    box.id = "sr-team-exp";
+    box.innerHTML =
+      '<div class="card"><h4>Advance expense requests</h4>' +
+      '<p class="rate-hint">The marketing team’s Advance Expense Requests — open them to approve.</p>' +
+      '<button type="button" class="btn-primary" id="sr-open-adv">Open advance requests to approve</button></div>' +
+      '<h3 class="section-title">Daily expenses ' +
+      '<select id="sr-te-status" class="period-select" aria-label="Status">' +
+      '<option value="submitted">Waiting for approval</option><option value="open">Open (not fully paid)</option>' +
+      '<option value="">All</option><option value="approved">Approved</option><option value="partially_paid">Partially paid</option>' +
+      '<option value="paid">Paid</option><option value="rejected">Rejected</option></select></h3>' +
+      '<div class="total-bar" id="sr-te-totals"></div>' +
+      '<div id="sr-te-list" class="record-list"><p class="empty-note">Loading…</p></div>';
+    var header = view.querySelector(".app-header");
+    (header || view.firstChild).insertAdjacentElement(header ? "afterend" : "beforebegin", box);
+    document.getElementById("sr-open-adv").addEventListener("click", function () {
+      var b = document.getElementById("btn-open-advance-hub");
+      if (b) b.click();
+    });
+    document.getElementById("sr-te-status").addEventListener("change", loadTeamExpenses);
+    addEmployeeFilters();
+  }
+
+  var teLoading = 0;
+  function loadTeamExpenses() {
+    var list = document.getElementById("sr-te-list");
+    if (!list || !isApprover()) return;
+    var mine = ++teLoading;
+    team(viewer()).then(function (ppl) {
+      var pp = selectedPerson();
+      var status = document.getElementById("sr-te-status").value;
+      var q = "get_team_expenses.php?status=" + encodeURIComponent(status) + (pp && pp.id != null ? "&user_id=" + encodeURIComponent(pp.id) : "");
+      return srApi(q).then(function (data) {
+        if (mine !== teLoading) return;
+        var ids = {};
+        ppl.forEach(function (x) { if (x.id != null) ids[String(x.id)] = true; });
+        var rows = (data.expenses || []).filter(function (r) { return pp || ids[String(r.employee_id)]; });
+        var total = 0, payable = 0;
+        rows.forEach(function (r) { if (r.payment_status !== "rejected") { total += Number(r.total_amount) || 0; payable += Number(r.balance_payable) || 0; } });
+        document.getElementById("sr-te-totals").innerHTML = "<span>" + rows.length + " expense" + (rows.length === 1 ? "" : "s") +
+          "</span><strong>" + money(total) + (payable ? " · to pay " + money(payable) : "") + "</strong>";
+        if (!rows.length) { list.innerHTML = '<p class="empty-note">No expenses match this filter.</p>'; return; }
+        list.innerHTML = rows.map(function (r) {
+          var bills = (r.attachments || []).map(function (a, i) {
+            return '<a class="attachment-link" href="' + esc(a) + '" target="_blank" rel="noopener">Bill' + (r.attachments.length > 1 ? " " + (i + 1) : "") + "</a>";
+          }).join(" ");
+          var st = r.payment_status;
+          var actions = (st === "submitted" ? '<button type="button" class="btn-small te-approve" data-te-approve="' + r.id + '" data-te-ver="' + r.version + '">Approve</button>' : "") +
+            (st === "submitted" || st === "approved" ? '<button type="button" class="btn-small te-reject" data-te-reject="' + r.id + '" data-te-ver="' + r.version + '">Reject</button>' : "");
+          return '<div class="record-card">' +
+            '<div class="rc-top"><span>' + esc(r.employee_name) + " · " + money(r.total_amount) + "</span><span>" + esc(r.expense_date) + "</span></div>" +
+            '<div class="rc-sub">' + esc(r.description || "") + (r.notes ? " · " + esc(r.notes) : "") + (r.advance_request_no ? " · " + esc(r.advance_request_no) : "") + "</div>" +
+            '<div class="rc-badges"><span class="badge' + (st === "paid" || st === "approved" ? " green" : st === "rejected" ? " st-rejected" : " st-submitted") + '">' + esc(r.status_label || st) + "</span>" +
+            (r.status_remarks ? '<span class="badge gray">' + esc(r.status_remarks) + "</span>" : "") + "</div>" +
+            (bills ? '<div style="margin-top:6px;">' + bills + "</div>" : "") +
+            (actions ? '<div class="te-actions">' + actions + "</div>" : "") +
+            "</div>";
+        }).join("");
+        list.querySelectorAll("[data-te-approve],[data-te-reject]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var approve = btn.hasAttribute("data-te-approve");
+            var body = { id: Number(btn.getAttribute(approve ? "data-te-approve" : "data-te-reject")), if_version: Number(btn.getAttribute("data-te-ver")),
+                         payment_status: approve ? "approved" : "rejected" };
+            if (!approve) {
+              var why = window.prompt("Reason for rejecting this expense:");
+              if (!why || !why.trim()) return;
+              body.remarks = why.trim();
+            }
+            btn.disabled = true;
+            srApi("set_expense_status.php", body).then(function () { loadTeamExpenses(); }).catch(function (e) {
+              window.alert(e.message); btn.disabled = false; loadTeamExpenses();
+            });
+          });
+        });
+      });
+    }).catch(function (e) {
+      if (mine === teLoading) list.innerHTML = '<p class="empty-note">' + esc(e.message) + "</p>";
+    });
+  }
+
   // ---------------- read-only Logbook cards ----------------
   function markCards() {
     document.querySelectorAll('[data-taskid^="lb_"],[data-assign-lead^="lb_"]').forEach(function (el) {
@@ -323,9 +452,15 @@
   }
 
   function start() {
+    setupApproverView();
     addEmployeeFilters();
     markCards();
     new MutationObserver(markCards).observe(document.body, { childList: true, subtree: true });
+    // Signing in / out happens without a page load: re-check who is viewing.
+    window.addEventListener("storage", setupApproverView);
+    document.addEventListener("click", function (e) {
+      if (e.target && e.target.closest && e.target.closest('.tab-btn[data-view="expense"]')) setupApproverView();
+    }, true);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
