@@ -52,3 +52,8 @@ input, select, textarea{font-size:14.5px; font-weight:500; color:var(--ink);}
 .total-bar, .total-bar span, .total-bar strong{color:var(--ink) !important;}
 .total-bar{font-size:14px; font-weight:600;}
 .total-bar strong{font-weight:700;}
+
+/* Approval emails go out automatically when a request is submitted (with a
+   one-click Approve button), so the manual "Email me Approve buttons" re-send
+   is not shown. */
+#btn-adv-resend{display:none !important;}
