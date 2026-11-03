@@ -259,13 +259,13 @@
   // One choice for both tabs: pick a person on either and the other follows.
   var FILTERS = [
     { id: "tasks-employee-filter", after: ["tasks-region-filter", "tasks-status-filter"], all: "All Employees",
-      reload: "tasks-status-filter", needsAccount: false },
+      reload: "tasks-status-filter", needsAccount: false, tabsAfter: "#view-tasks > .app-header" },   // top of Tasks
     { id: "expense-employee-filter", after: ["expense-period"], all: "My expenses",
       reload: "expense-period", needsAccount: true },
     { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All employees",
       reload: "sr-te-status", needsAccount: true, tabsAtTopOf: "sr-team-exp" },   // above Advance requests
     { id: "team-visit-employee-filter", after: ["sr-tv-period"], all: "All marketing team",
-      reload: "sr-tv-period", needsAccount: true },
+      reload: "sr-tv-period", needsAccount: true, tabsAtTopOf: "sr-team-visits" },   // top of Team Visits
   ];
 
   function fillEmployees() {
@@ -308,7 +308,9 @@
         bar.className = "sr-person-tabs";
         bar.setAttribute("role", "tablist");
         var top = f.tabsAtTopOf && document.getElementById(f.tabsAtTopOf);
+        var after = f.tabsAfter && document.querySelector(f.tabsAfter);
         if (top) top.insertAdjacentElement("afterbegin", bar);
+        else if (after) after.insertAdjacentElement("afterend", bar);
         else (sel.closest("h3") || sel).insertAdjacentElement("afterend", bar);
       }
       sel.style.display = "none";
