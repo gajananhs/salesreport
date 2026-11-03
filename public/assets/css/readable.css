@@ -57,3 +57,11 @@ input, select, textarea{font-size:14.5px; font-weight:500; color:var(--ink);}
    one-click Approve button), so the manual "Email me Approve buttons" re-send
    is not shown. */
 #btn-adv-resend{display:none !important;}
+
+/* Employee name tabs (GM / CEO): Tasks, Expenses, Visits. One row that
+   scrolls sideways on phones, wraps on wider screens. */
+.sr-person-tabs{display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:2px 2px 12px; margin:-2px 0 4px;}
+.sr-person-tabs::-webkit-scrollbar{display:none;}
+.sr-person-tabs .chip{flex:0 0 auto; white-space:nowrap; font-size:13.5px; font-weight:700; padding:8px 14px; cursor:pointer;}
+.sr-person-tabs .chip:disabled{opacity:.45; cursor:not-allowed;}
+@media (min-width:768px){ .sr-person-tabs{flex-wrap:wrap; overflow-x:visible;} }
