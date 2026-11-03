@@ -263,7 +263,7 @@
     { id: "expense-employee-filter", after: ["expense-period"], all: "My expenses",
       reload: "expense-period", needsAccount: true },
     { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All employees",
-      reload: "sr-te-status", needsAccount: true },
+      reload: "sr-te-status", needsAccount: true, tabsAtTopOf: "sr-team-exp" },   // above Advance requests
     { id: "team-visit-employee-filter", after: ["sr-tv-period"], all: "All marketing team",
       reload: "sr-tv-period", needsAccount: true },
   ];
@@ -307,8 +307,9 @@
         bar.id = barId;
         bar.className = "sr-person-tabs";
         bar.setAttribute("role", "tablist");
-        var h = sel.closest("h3") || sel;
-        h.insertAdjacentElement("afterend", bar);
+        var top = f.tabsAtTopOf && document.getElementById(f.tabsAtTopOf);
+        if (top) top.insertAdjacentElement("afterbegin", bar);
+        else (sel.closest("h3") || sel).insertAdjacentElement("afterend", bar);
       }
       sel.style.display = "none";
       bar.style.display = show ? "" : "none";
