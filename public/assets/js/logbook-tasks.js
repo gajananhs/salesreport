@@ -289,6 +289,48 @@
       sel.value = selectedPerson() ? selected : "";
     });
     if (!selectedPerson()) selected = "";
+    renderTabs();
+  }
+
+  // The Employee choice as a row of name tabs (scrolls sideways on a phone,
+  // wraps on wider screens). The <select> stays, hidden, as the state app.js
+  // listeners and the reload logic above work from.
+  function renderTabs() {
+    var show = isAssigner(viewer()) && !!people;
+    FILTERS.forEach(function (f) {
+      var sel = document.getElementById(f.id);
+      if (!sel) return;
+      var barId = f.id + "-tabs";
+      var bar = document.getElementById(barId);
+      if (!bar) {
+        bar = document.createElement("div");
+        bar.id = barId;
+        bar.className = "sr-person-tabs";
+        bar.setAttribute("role", "tablist");
+        var h = sel.closest("h3") || sel;
+        h.insertAdjacentElement("afterend", bar);
+      }
+      sel.style.display = "none";
+      bar.style.display = show ? "" : "none";
+      if (!show) return;
+      var cur = sel.value;
+      bar.innerHTML = "";
+      Array.prototype.forEach.call(sel.options, function (o) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip" + (o.value === cur ? " active" : "");
+        b.setAttribute("role", "tab");
+        b.setAttribute("aria-selected", o.value === cur ? "true" : "false");
+        b.textContent = o.value === "" ? "All" : o.textContent.replace(/ \(no Sales Reporter account\)$/, "");
+        if (o.disabled) { b.disabled = true; b.title = "No Sales Reporter account"; }
+        b.addEventListener("click", function () {
+          if (o.disabled || sel.value === o.value) return;
+          sel.value = o.value;
+          sel.dispatchEvent(new Event("change"));
+        });
+        bar.appendChild(b);
+      });
+    });
   }
 
   function addEmployeeFilters() {
@@ -311,6 +353,7 @@
         if (r) r.dispatchEvent(new Event("change"));
         var day = document.getElementById("t-date"), panel = document.getElementById("e-today-panel");
         if (f.needsAccount && day && panel && !panel.classList.contains("hidden")) day.dispatchEvent(new Event("change"));
+        renderTabs();
       });
     });
     fillEmployees();
@@ -340,6 +383,7 @@
     "body.sr-approver #view-expense > :not(.app-header):not(#sr-team-exp){display:none !important;}" +
     "body.sr-approver #view-visit > :not(.app-header):not(#sr-team-visits){display:none !important;}" +
     "#sr-team-exp .te-adv-meta{font-size:12.5px; margin-top:4px;}" +
+    "body.sr-approver .sr-home-form{display:none !important;}" +
     "body.sr-approver #btn-adv-new, body.sr-approver #adv-list-view > h3.section-title, body.sr-approver #adv-req-list{display:none !important;}" +
     "#sr-team-exp .te-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}" +
     "#sr-team-exp .te-approve{border-color:var(--ok,#2F7A4F) !important; color:var(--ok,#2F7A4F) !important;}" +
@@ -355,14 +399,14 @@
       if (!h2.getAttribute("data-orig")) h2.setAttribute("data-orig", h2.textContent);
       h2.textContent = on ? x[1] : h2.getAttribute("data-orig");
     });
-    if (on) setupTeamVisits();
-    var view = document.getElementById("view-expense");
-    if (!view || !on || document.getElementById("sr-team-exp")) return;
-    if (!document.getElementById("sr-approver-css")) {
+    if (on && !document.getElementById("sr-approver-css")) {
       var st = document.createElement("style");
       st.id = "sr-approver-css"; st.textContent = APPROVER_CSS;
       document.head.appendChild(st);
     }
+    if (on) { markHomeForms(); setupTeamVisits(); }
+    var view = document.getElementById("view-expense");
+    if (!view || !on || document.getElementById("sr-team-exp")) return;
     var box = document.createElement("div");
     box.id = "sr-team-exp";
     box.innerHTML =
@@ -389,6 +433,23 @@
     document.getElementById("sr-te-status").addEventListener("change", loadTeamExpenses);
     document.getElementById("sr-ta-status").addEventListener("change", loadTeamAdvances);
     addEmployeeFilters();
+  }
+
+  // ---- Home tab: no Daily Work Report form or Quick Actions (Log Visit / Expense / Plan) ----
+  function markHomeForms() {
+    var home = document.getElementById("view-home");
+    if (!home) return;
+    ["dw-worktype", "dw-rows-section"].forEach(function (id) { var el = document.getElementById(id); if (el) el.classList.add("sr-home-form"); });
+    var qa = home.querySelector(".quick-actions");
+    if (qa) qa.classList.add("sr-home-form");
+    home.querySelectorAll("h3.section-title").forEach(function (h) {
+      var t = (h.textContent || "").trim();
+      if (/^Daily Work Report/i.test(t) || /^Quick Actions/i.test(t)) {
+        h.classList.add("sr-home-form");
+        var n = h.nextElementSibling;
+        if (n && n.tagName === "P") n.classList.add("sr-home-form");   // "Pick how today's work is logged..."
+      }
+    });
   }
 
   // ---- Visits tab: the marketing team's visits, no Log Visit form ----
