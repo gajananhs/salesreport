@@ -629,6 +629,83 @@
     });
   }
 
+  // ---------------- Expense errors that can't be missed ----------------
+  // app.js writes a refused save into a small red line next to the Save
+  // button (#expense-error, #t-error), easy to overlook: nothing is stored
+  // then. Echo it as a pop-up that stays until dismissed, outline the field,
+  // and when the employee has no Advance Expense Request yet (the server
+  // refuses every expense then) say so above the form with a button.
+  function openNewAdvance() {
+    var hub = document.getElementById("btn-open-advance-hub");
+    if (hub) hub.click();
+    setTimeout(function () { var n = document.getElementById("btn-adv-new"); if (n) n.click(); }, 400);
+  }
+  function srAlert(msg, advance) {
+    var box = document.getElementById("sr-alert");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "sr-alert";
+      box.setAttribute("role", "alertdialog");
+      box.setAttribute("aria-live", "assertive");
+      document.body.appendChild(box);
+    }
+    box.innerHTML = '<div class="sr-alert-card"><div class="sr-alert-title">Not saved</div><div class="sr-alert-msg"></div>' +
+      '<div class="sr-alert-actions">' + (advance ? '<button type="button" class="btn-small sr-alert-new">+ New Advance Expense Request</button>' : "") +
+      '<button type="button" class="btn-small sr-alert-ok">OK</button></div></div>';
+    box.querySelector(".sr-alert-msg").textContent = msg;
+    box.classList.add("show");
+    box.querySelector(".sr-alert-ok").addEventListener("click", function () { box.classList.remove("show"); });
+    var nb = box.querySelector(".sr-alert-new");
+    if (nb) nb.addEventListener("click", function () { box.classList.remove("show"); openNewAdvance(); });
+  }
+  function watchExpenseErrors() {
+    ["expense-error", "t-error"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el.getAttribute("data-sr-watch")) return;
+      el.setAttribute("data-sr-watch", "1");
+      new MutationObserver(function () {
+        var msg = (el.textContent || "").trim();
+        if (!msg) return;
+        var advance = /advance/i.test(msg);
+        var sel = document.getElementById("e-advance-select");
+        if (advance && sel) {
+          sel.classList.add("sr-field-error");
+          sel.scrollIntoView({ block: "center", behavior: "smooth" });
+        } else {
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+        srAlert(msg, advance);
+      }).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+    var sel = document.getElementById("e-advance-select");
+    if (sel && !sel.getAttribute("data-sr-watch")) {
+      sel.setAttribute("data-sr-watch", "1");
+      sel.addEventListener("change", function () { if (sel.value) sel.classList.remove("sr-field-error"); });
+    }
+    // No advance request yet: a clear box above the form, not a grey hint.
+    var hint = document.getElementById("e-advance-hint");
+    if (hint && !hint.getAttribute("data-sr-watch")) {
+      hint.setAttribute("data-sr-watch", "1");
+      var check = function () {
+        var none = /No advance requests yet/i.test(hint.textContent || "");
+        var box = document.getElementById("sr-adv-needed");
+        if (none && !box) {
+          box = document.createElement("div");
+          box.id = "sr-adv-needed";
+          box.innerHTML = "<strong>You can\u2019t save expenses yet.</strong> Every expense must be drawn against one of your " +
+            "Advance Expense Requests, and you have none. Submit one first, then pick it in \u201CAdvance Expenses\u201D below." +
+            '<div><button type="button" class="btn-small">+ New Advance Expense Request</button></div>';
+          box.querySelector("button").addEventListener("click", openNewAdvance);
+          var anchor = document.getElementById("btn-open-advance-hub");
+          (anchor || hint).insertAdjacentElement("beforebegin", box);
+        }
+        if (box) box.style.display = none ? "" : "none";
+      };
+      new MutationObserver(check).observe(hint, { childList: true, characterData: true, subtree: true });
+      check();
+    }
+  }
+
   // ---------------- read-only Logbook cards ----------------
   function markCards() {
     document.querySelectorAll('[data-taskid^="lb_"],[data-assign-lead^="lb_"]').forEach(function (el) {
@@ -650,6 +727,7 @@
   function start() {
     setupApproverView();
     addEmployeeFilters();
+    watchExpenseErrors();
     markCards();
     new MutationObserver(markCards).observe(document.body, { childList: true, subtree: true });
     // Signing in / out happens without a page load: re-check who is viewing.
