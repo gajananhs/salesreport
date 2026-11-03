@@ -220,6 +220,10 @@
   window.fetch = function (input, init) {
     var url = typeof input === "string" ? input : (input && input.url) || "";
     var get = !(init && init.method && init.method !== "GET");
+    if (get && /(^|\/)api\/get_my_summary\.php/.test(url) && isApprover()) {
+      setupApproverView();
+      setTimeout(loadTeamHome, 0);                            // Home tab opened / refreshed
+    }
     if (get && VISITS.test(url.split("#")[0]) && !/[?&]user_id=/.test(url) && isApprover()) {
       setupApproverView();
       setTimeout(loadTeamVisits, 0);                          // Visits tab opened / refreshed
@@ -264,6 +268,8 @@
       reload: "expense-period", needsAccount: true },
     { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All employees",
       reload: "sr-te-status", needsAccount: true, tabsAtTopOf: "sr-team-exp" },   // above Advance requests
+    { id: "team-home-employee-filter", after: ["sr-hs-period"], all: "All",
+      reload: "sr-hs-period", needsAccount: true, tabsAtTopOf: "sr-team-home" },   // top of Home
     { id: "team-visit-employee-filter", after: ["sr-tv-period"], all: "All marketing team",
       reload: "sr-tv-period", needsAccount: true, tabsAtTopOf: "sr-team-visits" },   // top of Team Visits
   ];
@@ -407,7 +413,7 @@
       st.id = "sr-approver-css"; st.textContent = APPROVER_CSS;
       document.head.appendChild(st);
     }
-    if (on) { markHomeForms(); setupTeamVisits(); }
+    if (on) { markHomeForms(); setupTeamHome(); setupTeamVisits(); }
     var view = document.getElementById("view-expense");
     if (!view || !on || document.getElementById("sr-team-exp")) return;
     var box = document.createElement("div");
@@ -445,6 +451,13 @@
     ["dw-worktype", "dw-rows-section"].forEach(function (id) { var el = document.getElementById(id); if (el) el.classList.add("sr-home-form"); });
     var qa = home.querySelector(".quick-actions");
     if (qa) qa.classList.add("sr-home-form");
+    var head = home.querySelector(".app-header");                 // "Good evening, Gajanan" + role badge
+    if (head) head.classList.add("sr-home-form");
+    var stats = document.getElementById("home-stats");              // his own Today's Summary (all 0)
+    if (stats) {
+      stats.classList.add("sr-home-form");
+      if (stats.previousElementSibling && stats.previousElementSibling.tagName === "H3") stats.previousElementSibling.classList.add("sr-home-form");
+    }
     home.querySelectorAll("h3.section-title").forEach(function (h) {
       var t = (h.textContent || "").trim();
       if (/^Daily Work Report/i.test(t) || /^Quick Actions/i.test(t)) {
@@ -453,6 +466,68 @@
         if (n && n.tagName === "P") n.classList.add("sr-home-form");   // "Pick how today's work is logged..."
       }
     });
+  }
+
+  // ---- Home tab: the team's summary (get_team_summary.php, GM/CEO) instead of his own ----
+  var STATS = [["customers_visited", "Customers Visited", 0], ["dealers_visited", "Dealers Visited", 0],
+    ["quotations_sent", "Quotations Sent", 0], ["orders_received", "Orders Received", 0],
+    ["order_value", "Order Value Received", 1], ["payment_collected", "Payment Value Received", 1],
+    ["total_km", "KM Travelled", 2], ["total_expenses", "Expenses", 1]];
+  function statVal(v, kind) { return kind === 1 ? money(v) : kind === 2 ? String(Math.round(Number(v) || 0)) : String(Number(v) || 0); }
+
+  function setupTeamHome() {
+    var home = document.getElementById("view-home");
+    if (!home || document.getElementById("sr-team-home")) return;
+    var box = document.createElement("div");
+    box.id = "sr-team-home";
+    box.innerHTML =
+      '<h3 class="section-title">Team Summary ' +
+      '<select id="sr-hs-period" class="period-select" aria-label="Period">' +
+      '<option value="daily">Today</option><option value="weekly">This Week</option><option value="monthly" selected>This Month</option>' +
+      '<option value="last7">Last 7 Days</option><option value="lastweek">Last Week</option><option value="last30">Last 30 Days</option></select></h3>' +
+      '<div class="stat-grid" id="sr-hs-stats"></div>' +
+      '<h3 class="section-title">By person</h3>' +
+      '<div id="sr-hs-list" class="record-list"><p class="empty-note">Loading\u2026</p></div>';
+    var stats = document.getElementById("home-stats");
+    var anchor = stats && stats.previousElementSibling && stats.previousElementSibling.tagName === "H3" ? stats.previousElementSibling : stats;
+    if (anchor) anchor.insertAdjacentElement("beforebegin", box);
+    else home.appendChild(box);
+    document.getElementById("sr-hs-period").addEventListener("change", loadTeamHome);
+    addEmployeeFilters();
+  }
+
+  var hsLoading = 0;
+  function loadTeamHome() {
+    var list = document.getElementById("sr-hs-list");
+    if (!list || !isApprover()) return;
+    var mine = ++hsLoading;
+    var period = document.getElementById("sr-hs-period").value;
+    Promise.all([team(viewer()), srApi("get_team_summary.php?period=" + encodeURIComponent(period))]).then(function (r) {
+      if (mine !== hsLoading) return;
+      var pp = selectedPerson();
+      var members = (r[1].members || []).filter(function (m) { return !pp || (pp.id != null && String(m.id) === String(pp.id)); });
+      var tot = pp ? (members[0] || {}) : (r[1].totals || {});
+      document.getElementById("sr-hs-stats").innerHTML = STATS.map(function (s) {
+        return '<div class="stat-card"><span class="stat-value">' + esc(statVal(tot[s[0]], s[2])) + '</span><span class="stat-label">' + s[1] + "</span></div>";
+      }).join("");
+      var active = members.filter(function (m) {
+        return STATS.some(function (s) { return Number(m[s[0]]) > 0; }) || Number(m.total_visits) > 0;
+      }).sort(function (a, b) { return (Number(b.total_visits) || 0) - (Number(a.total_visits) || 0); });
+      if (!active.length) { list.innerHTML = '<p class="empty-note">No visits or expenses in this period.</p>'; return; }
+      list.innerHTML = active.map(function (m) {
+        return '<div class="record-card"><div class="rc-top"><span>' + esc(m.name) + "</span><span>" +
+          (Number(m.total_visits) || 0) + " visit" + (Number(m.total_visits) === 1 ? "" : "s") + "</span></div>" +
+          '<div class="rc-badges">' +
+          '<span class="badge gray">Customers ' + (Number(m.customers_visited) || 0) + "</span>" +
+          '<span class="badge gray">Dealers ' + (Number(m.dealers_visited) || 0) + "</span>" +
+          (Number(m.quotations_sent) ? '<span class="badge">Quotes ' + m.quotations_sent + " \u00B7 " + money(m.quotation_value) + "</span>" : "") +
+          (Number(m.orders_received) ? '<span class="badge green">Orders ' + m.orders_received + " \u00B7 " + money(m.order_value) + "</span>" : "") +
+          (Number(m.payment_collected) ? '<span class="badge green">Payments ' + money(m.payment_collected) + "</span>" : "") +
+          (Number(m.total_km) ? '<span class="badge gray">' + Math.round(m.total_km) + " km</span>" : "") +
+          (Number(m.total_expenses) ? '<span class="badge gray">Expenses ' + money(m.total_expenses) + "</span>" : "") +
+          "</div></div>";
+      }).join("");
+    }).catch(function (e) { if (mine === hsLoading) list.innerHTML = '<p class="empty-note">' + esc(e.message) + "</p>"; });
   }
 
   // ---- Visits tab: the marketing team's visits, no Log Visit form ----
@@ -731,12 +806,13 @@
     setupApproverView();
     addEmployeeFilters();
     watchExpenseErrors();
+    if (isApprover()) loadTeamHome();   // Home may already be showing when this script arrives
     markCards();
     new MutationObserver(markCards).observe(document.body, { childList: true, subtree: true });
     // Signing in / out happens without a page load: re-check who is viewing.
     window.addEventListener("storage", setupApproverView);
     document.addEventListener("click", function (e) {
-      if (e.target && e.target.closest && e.target.closest('.tab-btn[data-view="expense"], .tab-btn[data-view="visit"]')) setupApproverView();
+      if (e.target && e.target.closest && e.target.closest('.tab-btn[data-view="expense"], .tab-btn[data-view="visit"], .tab-btn[data-view="home"]')) setupApproverView();
     }, true);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
