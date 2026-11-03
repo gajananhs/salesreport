@@ -201,6 +201,7 @@
   // ---------------- get_tasks.php / get_expenses.php ----------------
   var TASKS = /(^|\/)api\/get_tasks\.php(\?[^#]*)?$/;
   var EXPENSES = /(^|\/)api\/get_expenses\.php(\?[^#]*)?$/;
+  var VISITS = /(^|\/)api\/get_visits\.php(\?[^#]*)?$/;
 
   function json(obj) { return new Response(JSON.stringify(obj), { status: 200, headers: { "Content-Type": "application/json" } }); }
 
@@ -219,6 +220,10 @@
   window.fetch = function (input, init) {
     var url = typeof input === "string" ? input : (input && input.url) || "";
     var get = !(init && init.method && init.method !== "GET");
+    if (get && VISITS.test(url.split("#")[0]) && !/[?&]user_id=/.test(url) && isApprover()) {
+      setupApproverView();
+      setTimeout(loadTeamVisits, 0);                          // Visits tab opened / refreshed
+    }
     if (get && EXPENSES.test(url.split("#")[0])) {
       if (!people && isAssigner(viewer())) team(viewer());   // fills the Employee lists
       if (isApprover()) setTimeout(loadTeamExpenses, 0);      // Expenses tab opened / refreshed
@@ -257,8 +262,10 @@
       reload: "tasks-status-filter", needsAccount: false },
     { id: "expense-employee-filter", after: ["expense-period"], all: "My expenses",
       reload: "expense-period", needsAccount: true },
-    { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All marketing team",
+    { id: "team-exp-employee-filter", after: ["sr-te-status"], all: "All employees",
       reload: "sr-te-status", needsAccount: true },
+    { id: "team-visit-employee-filter", after: ["sr-tv-period"], all: "All marketing team",
+      reload: "sr-tv-period", needsAccount: true },
   ];
 
   function fillEmployees() {
@@ -320,7 +327,7 @@
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
   }
-  function money(v) { return "₹" + (Number(v) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
+  function money(v) { return "\u20B9" + (Number(v) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
   function srApi(path, body) {
     var opts = { headers: { "X-Session-Token": read("sr_token") || "", "Content-Type": "application/json" } };
     if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
@@ -331,6 +338,8 @@
 
   var APPROVER_CSS =
     "body.sr-approver #view-expense > :not(.app-header):not(#sr-team-exp){display:none !important;}" +
+    "body.sr-approver #view-visit > :not(.app-header):not(#sr-team-visits){display:none !important;}" +
+    "#sr-team-exp .te-adv-meta{font-size:12.5px; margin-top:4px;}" +
     "body.sr-approver #btn-adv-new, body.sr-approver #adv-list-view > h3.section-title, body.sr-approver #adv-req-list{display:none !important;}" +
     "#sr-team-exp .te-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}" +
     "#sr-team-exp .te-approve{border-color:var(--ok,#2F7A4F) !important; color:var(--ok,#2F7A4F) !important;}" +
@@ -340,14 +349,15 @@
   function setupApproverView() {
     var on = isApprover();
     document.body.classList.toggle("sr-approver", on);
-    var view = document.getElementById("view-expense");
-    if (!view) return;
-    var h2 = view.querySelector(".app-header h2");
-    if (h2) {
+    [["view-expense", "Team Expenses"], ["view-visit", "Team Visits"]].forEach(function (x) {
+      var h2 = document.querySelector("#" + x[0] + " .app-header h2");
+      if (!h2) return;
       if (!h2.getAttribute("data-orig")) h2.setAttribute("data-orig", h2.textContent);
-      h2.textContent = on ? "Team Expenses" : h2.getAttribute("data-orig");
-    }
-    if (!on || document.getElementById("sr-team-exp")) return;
+      h2.textContent = on ? x[1] : h2.getAttribute("data-orig");
+    });
+    if (on) setupTeamVisits();
+    var view = document.getElementById("view-expense");
+    if (!view || !on || document.getElementById("sr-team-exp")) return;
     if (!document.getElementById("sr-approver-css")) {
       var st = document.createElement("style");
       st.id = "sr-approver-css"; st.textContent = APPROVER_CSS;
@@ -356,16 +366,20 @@
     var box = document.createElement("div");
     box.id = "sr-team-exp";
     box.innerHTML =
-      '<div class="card"><h4>Advance expense requests</h4>' +
-      '<p class="rate-hint">The marketing team’s Advance Expense Requests — open them to approve.</p>' +
-      '<button type="button" class="btn-primary" id="sr-open-adv">Open advance requests to approve</button></div>' +
+      '<h3 class="section-title">Advance expense requests ' +
+      '<select id="sr-ta-status" class="period-select" aria-label="Status">' +
+      '<option value="waiting">Waiting for approval</option><option value="">All</option>' +
+      '<option value="fully_approved">Approved \u2013 awaiting payment</option><option value="paid">Paid</option>' +
+      '<option value="rejected">Rejected</option></select>' +
+      '<button type="button" class="btn-small" id="sr-open-adv">Full details / PDF</button></h3>' +
+      '<div id="sr-ta-list" class="record-list"><p class="empty-note">Loading\u2026</p></div>' +
       '<h3 class="section-title">Daily expenses ' +
       '<select id="sr-te-status" class="period-select" aria-label="Status">' +
       '<option value="submitted">Waiting for approval</option><option value="open">Open (not fully paid)</option>' +
       '<option value="">All</option><option value="approved">Approved</option><option value="partially_paid">Partially paid</option>' +
       '<option value="paid">Paid</option><option value="rejected">Rejected</option></select></h3>' +
       '<div class="total-bar" id="sr-te-totals"></div>' +
-      '<div id="sr-te-list" class="record-list"><p class="empty-note">Loading…</p></div>';
+      '<div id="sr-te-list" class="record-list"><p class="empty-note">Loading\u2026</p></div>';
     var header = view.querySelector(".app-header");
     (header || view.firstChild).insertAdjacentElement(header ? "afterend" : "beforebegin", box);
     document.getElementById("sr-open-adv").addEventListener("click", function () {
@@ -373,7 +387,127 @@
       if (b) b.click();
     });
     document.getElementById("sr-te-status").addEventListener("change", loadTeamExpenses);
+    document.getElementById("sr-ta-status").addEventListener("change", loadTeamAdvances);
     addEmployeeFilters();
+  }
+
+  // ---- Visits tab: the marketing team's visits, no Log Visit form ----
+  function setupTeamVisits() {
+    var view = document.getElementById("view-visit");
+    if (!view || document.getElementById("sr-team-visits")) return;
+    var box = document.createElement("div");
+    box.id = "sr-team-visits";
+    box.innerHTML =
+      '<h3 class="section-title">Visits ' +
+      '<select id="sr-tv-period" class="period-select" aria-label="Period">' +
+      '<option value="daily">Today</option><option value="weekly">This Week</option><option value="monthly">This Month</option>' +
+      '<option value="last7">Last 7 Days</option><option value="lastweek">Last Week</option><option value="last30" selected>Last 30 Days</option></select></h3>' +
+      '<div class="total-bar" id="sr-tv-totals"></div>' +
+      '<div id="sr-tv-list" class="record-list"><p class="empty-note">Loading\u2026</p></div>';
+    var header = view.querySelector(".app-header");
+    (header || view.firstChild).insertAdjacentElement(header ? "afterend" : "beforebegin", box);
+    document.getElementById("sr-tv-period").addEventListener("change", loadTeamVisits);
+    addEmployeeFilters();
+  }
+
+  var tvLoading = 0;
+  function loadTeamVisits() {
+    var list = document.getElementById("sr-tv-list");
+    if (!list || !isApprover()) return;
+    var mine = ++tvLoading;
+    var period = document.getElementById("sr-tv-period").value;
+    team(viewer()).then(function (ppl) {
+      var pp = selectedPerson();
+      var who = (pp ? [pp] : ppl).filter(function (x) { return x.id != null; });
+      return Promise.all(who.map(function (x) {
+        return srApi("get_visits.php?period=" + encodeURIComponent(period) + "&user_id=" + encodeURIComponent(x.id))
+          .then(function (d) { return (d.visits || []).map(function (v) { v.__who = v.user_name || x.label; return v; }); })
+          .catch(function () { return []; });
+      })).then(function (parts) {
+        if (mine !== tvLoading) return;
+        var rows = [].concat.apply([], parts).sort(function (a, b) {
+          var x = String(a.visit_date || "") + String(a.created_at || ""), y = String(b.visit_date || "") + String(b.created_at || "");
+          return x < y ? 1 : x > y ? -1 : 0;
+        });
+        var orders = 0, quotes = 0;
+        rows.forEach(function (v) {
+          if (Number(v.order_received)) orders += Number(v.order_value) || 0;
+          if (Number(v.quotation_sent)) quotes += Number(v.quotation_value) || 0;
+        });
+        document.getElementById("sr-tv-totals").innerHTML = "<span>" + rows.length + " visit" + (rows.length === 1 ? "" : "s") + "</span><strong>" +
+          (quotes ? "Quotes " + money(quotes) : "") + (quotes && orders ? " \u00B7 " : "") + (orders ? "Orders " + money(orders) : "") + "</strong>";
+        if (!rows.length) { list.innerHTML = '<p class="empty-note">No visits in this period.</p>'; return; }
+        list.innerHTML = rows.map(function (v) {
+          var b = ['<span class="badge gray">' + esc(v.visit_type) + "</span>"];
+          if (Number(v.quotation_sent)) b.push('<span class="badge">Quote ' + money(v.quotation_value) + "</span>");
+          if (Number(v.order_received)) b.push('<span class="badge green">Order ' + money(v.order_value) + "</span>");
+          if (Number(v.payment_collected)) b.push('<span class="badge green">Payment ' + money(v.payment_value) + "</span>");
+          if (v.location) b.push('<span class="badge gray">\uD83D\uDCCD ' + esc(v.location) + "</span>");
+          return '<div class="record-card">' +
+            '<div class="rc-top"><span>' + esc(v.__who) + " \u00B7 " + esc(v.contact_name) + "</span><span>" + esc(v.visit_date) + "</span></div>" +
+            '<div class="rc-sub">' + esc(v.purpose || "") + (v.notes ? " \u00B7 " + esc(v.notes) : "") + "</div>" +
+            '<div class="rc-badges">' + b.join("") + "</div></div>";
+        }).join("");
+      });
+    }).catch(function (e) { if (mine === tvLoading) list.innerHTML = '<p class="empty-note">' + esc(e.message) + "</p>"; });
+  }
+
+  // ---- Expenses tab: Advance Expense Requests with Approve / Reject ----
+  // Everyone's requests (none waiting for approval may be hidden); the
+  // Employee list narrows it to one person.
+  var taLoading = 0;
+  function loadTeamAdvances() {
+    var list = document.getElementById("sr-ta-list");
+    if (!list || !isApprover()) return;
+    var mine = ++taLoading;
+    var want = document.getElementById("sr-ta-status").value;
+    srApi("get_advance_requests.php?all_pending=1").then(function (data) {
+      if (mine !== taLoading) return;
+      var pp = selectedPerson();
+      var rows = (data.requests || []).filter(function (r) {
+        var a = r.approval || {}, fin = a.final_status || r.final_approval_status;
+        if (pp && !(pp.id != null && String(r.user_id) === String(pp.id))) return false;
+        if (want === "waiting") return r.status === "pending" && fin !== "rejected";
+        if (want === "fully_approved") return fin === "fully_approved" && !a.paid;
+        if (want === "paid") return !!a.paid;
+        if (want === "rejected") return r.status === "rejected" || fin === "rejected";
+        return true;
+      });
+      if (!rows.length) { list.innerHTML = '<p class="empty-note">No advance requests match this filter.</p>'; return; }
+      list.innerHTML = rows.map(function (r) {
+        var a = r.approval || {};
+        var slots = (a.approvals || []).map(function (x) {
+          var d = x.decision || "pending";
+          return esc(x.label) + (x.required ? "" : " (optional)") + ": " + esc(d === "pending" ? "Pending" : d.charAt(0).toUpperCase() + d.slice(1) + (x.at ? " " + x.at : ""));
+        }).join(" \u00B7 ");
+        var cls = a.paid || a.final_status === "fully_approved" ? " green" : (r.status === "rejected" ? " st-rejected" : " st-submitted");
+        return '<div class="record-card">' +
+          '<div class="rc-top"><span>' + esc(r.request_no) + " \u2014 " + esc(r.employee_name) + "</span><span>" + money(r.total_advance_requested) + "</span></div>" +
+          '<div class="rc-sub">' + esc(r.purpose_of_travel || "") + " \u00B7 " + esc(r.travel_from || "") + " \u2192 " + esc(r.travel_to || "") +
+            " \u00B7 " + esc(r.date_from) + " to " + esc(r.date_to) + "</div>" +
+          '<div class="rc-badges"><span class="badge' + cls + '">' + esc(a.final_label || r.status) + "</span></div>" +
+          (slots ? '<div class="te-adv-meta">' + slots + "</div>" : "") +
+          (a.can_approve || a.can_reject ? '<div class="te-actions">' +
+            (a.can_approve ? '<button type="button" class="btn-small te-approve" data-ta-approve="' + r.id + '">Approve as ' + esc(a.my_slot_label || "") + "</button>" : "") +
+            (a.can_reject ? '<button type="button" class="btn-small te-reject" data-ta-reject="' + r.id + '">Reject</button>' : "") + "</div>" : "") +
+          "</div>";
+      }).join("");
+      list.querySelectorAll("[data-ta-approve],[data-ta-reject]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var approve = btn.hasAttribute("data-ta-approve");
+          var body = { id: Number(btn.getAttribute(approve ? "data-ta-approve" : "data-ta-reject")), status: approve ? "approved" : "rejected", remarks: "" };
+          if (!approve) {
+            var why = window.prompt("Reason for rejecting this Expenses Report:");
+            if (!why || !why.trim()) return;
+            body.remarks = why.trim();
+          }
+          btn.disabled = true;
+          srApi("set_advance_request_status.php", body).then(function () { loadTeamAdvances(); }).catch(function (e) {
+            window.alert(e.message); btn.disabled = false; loadTeamAdvances();
+          });
+        });
+      });
+    }).catch(function (e) { if (mine === taLoading) list.innerHTML = '<p class="empty-note">' + esc(e.message) + "</p>"; });
   }
 
   var teLoading = 0;
@@ -381,19 +515,20 @@
     var list = document.getElementById("sr-te-list");
     if (!list || !isApprover()) return;
     var mine = ++teLoading;
+    loadTeamAdvances();
     team(viewer()).then(function (ppl) {
       var pp = selectedPerson();
       var status = document.getElementById("sr-te-status").value;
       var q = "get_team_expenses.php?status=" + encodeURIComponent(status) + (pp && pp.id != null ? "&user_id=" + encodeURIComponent(pp.id) : "");
       return srApi(q).then(function (data) {
         if (mine !== teLoading) return;
-        var ids = {};
-        ppl.forEach(function (x) { if (x.id != null) ids[String(x.id)] = true; });
-        var rows = (data.expenses || []).filter(function (r) { return pp || ids[String(r.employee_id)]; });
+        // Everyone's (nothing waiting for approval may be hidden); the
+        // Employee list narrows it to one person (user_id above).
+        var rows = data.expenses || [];
         var total = 0, payable = 0;
         rows.forEach(function (r) { if (r.payment_status !== "rejected") { total += Number(r.total_amount) || 0; payable += Number(r.balance_payable) || 0; } });
         document.getElementById("sr-te-totals").innerHTML = "<span>" + rows.length + " expense" + (rows.length === 1 ? "" : "s") +
-          "</span><strong>" + money(total) + (payable ? " · to pay " + money(payable) : "") + "</strong>";
+          "</span><strong>" + money(total) + (payable ? " \u00B7 to pay " + money(payable) : "") + "</strong>";
         if (!rows.length) { list.innerHTML = '<p class="empty-note">No expenses match this filter.</p>'; return; }
         list.innerHTML = rows.map(function (r) {
           var bills = (r.attachments || []).map(function (a, i) {
@@ -403,8 +538,8 @@
           var actions = (st === "submitted" ? '<button type="button" class="btn-small te-approve" data-te-approve="' + r.id + '" data-te-ver="' + r.version + '">Approve</button>' : "") +
             (st === "submitted" || st === "approved" ? '<button type="button" class="btn-small te-reject" data-te-reject="' + r.id + '" data-te-ver="' + r.version + '">Reject</button>' : "");
           return '<div class="record-card">' +
-            '<div class="rc-top"><span>' + esc(r.employee_name) + " · " + money(r.total_amount) + "</span><span>" + esc(r.expense_date) + "</span></div>" +
-            '<div class="rc-sub">' + esc(r.description || "") + (r.notes ? " · " + esc(r.notes) : "") + (r.advance_request_no ? " · " + esc(r.advance_request_no) : "") + "</div>" +
+            '<div class="rc-top"><span>' + esc(r.employee_name) + " \u00B7 " + money(r.total_amount) + "</span><span>" + esc(r.expense_date) + "</span></div>" +
+            '<div class="rc-sub">' + esc(r.description || "") + (r.notes ? " \u00B7 " + esc(r.notes) : "") + (r.advance_request_no ? " \u00B7 " + esc(r.advance_request_no) : "") + "</div>" +
             '<div class="rc-badges"><span class="badge' + (st === "paid" || st === "approved" ? " green" : st === "rejected" ? " st-rejected" : " st-submitted") + '">' + esc(r.status_label || st) + "</span>" +
             (r.status_remarks ? '<span class="badge gray">' + esc(r.status_remarks) + "</span>" : "") + "</div>" +
             (bills ? '<div style="margin-top:6px;">' + bills + "</div>" : "") +
@@ -459,7 +594,7 @@
     // Signing in / out happens without a page load: re-check who is viewing.
     window.addEventListener("storage", setupApproverView);
     document.addEventListener("click", function (e) {
-      if (e.target && e.target.closest && e.target.closest('.tab-btn[data-view="expense"]')) setupApproverView();
+      if (e.target && e.target.closest && e.target.closest('.tab-btn[data-view="expense"], .tab-btn[data-view="visit"]')) setupApproverView();
     }, true);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
